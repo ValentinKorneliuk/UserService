@@ -12,5 +12,7 @@ public interface CardInfoRepository extends JpaRepository<CardInfo, Long>{
     
     @Query(value = "SELECT * FROM card_info WHERE id IN (:ids)", nativeQuery = true)
     List<CardInfo> findCardsByIds(@Param("ids") List<Long> ids);
+
+    boolean existsByNumber(String number);
     
 }
