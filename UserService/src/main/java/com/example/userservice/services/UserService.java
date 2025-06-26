@@ -33,13 +33,13 @@ public class UserService {
     }
 
     public UserResponseDTO getUserById(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdWithCards(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return userMapper.toDTO(user);
     }
 
     public List<UserResponseDTO> getUsersByIds(List<Long> ids) {
-        List<User> users = userRepository.findAllById(ids);
+        List<User> users = userRepository.findUsersByIds(ids);
         return users.stream()
             .map(userMapper::toDTO)
             .collect(Collectors.toList());
