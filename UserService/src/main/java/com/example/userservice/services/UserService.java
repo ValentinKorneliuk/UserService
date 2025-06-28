@@ -11,8 +11,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import com.example.userservice.exceptions.ConflictException;
 import com.example.userservice.exceptions.ResourceNotFoundException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.CacheConfig;
 
 @Service
+@CacheConfig(cacheNames = "users")
 public class UserService {
 
     private UserRepository userRepository;
@@ -32,6 +37,7 @@ public class UserService {
         return userMapper.toDTO(savedUser);
     }
 
+    @Cacheable(key = "#id")
     public UserResponseDTO getUserById(Long id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -45,6 +51,7 @@ public class UserService {
             .collect(Collectors.toList());
     } 
 
+    @Cacheable(key = "#email")
     public UserResponseDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -52,6 +59,7 @@ public class UserService {
     }
 
     @Transactional
+    @CachePut(key = "#id")
     public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -61,6 +69,7 @@ public class UserService {
     }
 
     @Transactional
+    @CacheEvict(key = "#id")
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }

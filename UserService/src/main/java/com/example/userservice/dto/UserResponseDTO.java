@@ -1,10 +1,12 @@
 package com.example.userservice.dto;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
-public class UserResponseDTO {
-
+public class UserResponseDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private String name;
     private String surname;
