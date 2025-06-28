@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/changeset/create-card-info-table.yaml
   - include:
       file: db/changelog/changeset/add-index-card-info-user-id.yaml
+  - include:
+      file: db/changelog/changeset/alter-card-info-number-constraint.yaml

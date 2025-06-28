@@ -33,7 +33,7 @@ public class UserService {
     }
 
     public UserResponseDTO getUserById(Long id) {
-        User user = userRepository.findByIdWithCards(id)
+        User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return userMapper.toDTO(user);
     }

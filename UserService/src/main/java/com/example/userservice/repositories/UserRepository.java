@@ -13,7 +13,7 @@ import com.example.userservice.entities.User;
 public interface UserRepository extends JpaRepository<User, Long>{
     
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.cardInfos WHERE u.id = :id")
-    Optional<User> findByIdWithCards(@Param("id") Long id);
+    Optional<User> findById(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"cardInfos"})
     Optional<User> findByEmail(String email);
