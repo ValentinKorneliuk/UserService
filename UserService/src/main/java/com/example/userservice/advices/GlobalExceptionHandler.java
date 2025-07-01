@@ -77,6 +77,8 @@ public class GlobalExceptionHandler {
         errorBody.put("error", "Unexpected error");
         errorBody.put("message", ex.getMessage());
         errorBody.put("path", request.getRequestURI());
+
+        ex.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBody);
     }
 }
