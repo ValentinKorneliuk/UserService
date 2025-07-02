@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
         errorBody.put("error", "Data integrity violation");
         errorBody.put("message", ex.getMessage());
         errorBody.put("path", request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody);
+        return ResponseEntity.badRequest().body(errorBody);
     }
 
     @ExceptionHandler(ConflictException.class)

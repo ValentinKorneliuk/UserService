@@ -23,6 +23,8 @@ public class UserService {
     private UserRepository userRepository;
     private UserMapper userMapper;
 
+    
+
     public UserService(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
@@ -42,7 +44,7 @@ public class UserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return userMapper.toDTO(user);
-    }
+    }   
 
     public List<UserResponseDTO> getUsersByIds(List<Long> ids) {
         List<User> users = userRepository.findUsersByIds(ids);
@@ -63,6 +65,9 @@ public class UserService {
     public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (!user.getEmail().equals(userRequestDTO.getEmail()) && userRepository.existsByEmail(userRequestDTO.getEmail())) {
+            throw new ConflictException("User with email " + userRequestDTO.getEmail() + " already exists");
+        }
         userMapper.updateEntity(userRequestDTO, user);
         User updatedUser = userRepository.save(user);
         return userMapper.toDTO(updatedUser);

@@ -2,6 +2,7 @@ package com.example.userservice.controllers;
 
 import java.util.List;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class UserController {
     }
 
     @GetMapping("/ids")
-    public ResponseEntity<List<UserResponseDTO>> getUsersByIds(@RequestParam List<Long> ids) {
+    public ResponseEntity<List<UserResponseDTO>> getUsersByIds(@RequestParam @NotEmpty List<Long> ids) {
         return ResponseEntity.ok(userService.getUsersByIds(ids));
     }
 
