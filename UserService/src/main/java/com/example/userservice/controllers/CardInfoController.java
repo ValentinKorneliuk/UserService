@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +42,7 @@ public class CardInfoController {
 
     @PostMapping
     public ResponseEntity<CardInfoResponseDTO> createCardInfo(@Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
-        return ResponseEntity.ok(cardInfoService.createCardInfo(cardInfoRequestDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(cardInfoService.createCardInfo(cardInfoRequestDTO));
     }
 
     @PutMapping("/{id}")

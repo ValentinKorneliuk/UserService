@@ -11,6 +11,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -33,7 +35,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, Object> errorBody = new LinkedHashMap<>();
         errorBody.put("timestamp", LocalDateTime.now());
         errorBody.put("status", HttpStatus.BAD_REQUEST.value());
@@ -44,8 +46,33 @@ public class GlobalExceptionHandler {
             .toList();
 
         errorBody.put("messages", messages);
+        errorBody.put("path", request.getRequestURI());
         return ResponseEntity.badRequest().body(errorBody);
     }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        Map<String, Object> errorBody = new LinkedHashMap<>();
+        errorBody.put("timestamp", LocalDateTime.now());
+        errorBody.put("status", HttpStatus.BAD_REQUEST.value());
+        errorBody.put("error", "Missing request parameter");
+        errorBody.put("message", ex.getParameterName() + " parameter is missing");
+        errorBody.put("path", request.getRequestURI());
+        return ResponseEntity.badRequest().body(errorBody);
+    }
+
+    @ExceptionHandler(MissingPathVariableException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingPathVariable(MissingPathVariableException ex, HttpServletRequest request) {
+        Map<String, Object> errorBody = new LinkedHashMap<>();
+        errorBody.put("timestamp", LocalDateTime.now());
+        errorBody.put("status", HttpStatus.BAD_REQUEST.value());
+        errorBody.put("error", "Missing path variable");
+        errorBody.put("message", ex.getVariableName() + " path variable is missing");
+        errorBody.put("path", request.getRequestURI());
+        return ResponseEntity.badRequest().body(errorBody);
+    }
+
+
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {

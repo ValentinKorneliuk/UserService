@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.Cache;
-import org.springframework.cache.support.SimpleCacheManager;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -282,8 +281,10 @@ public class CardInfoServiceTest {
         cardInfoResponseDTO.setNumber(cardInfoRequestDTO.getNumber());
         cardInfoResponseDTO.setHolder(cardInfoRequestDTO.getHolder());
         cardInfoResponseDTO.setExpirationDate(cardInfoRequestDTO.getExpirationDate());
+        cardInfoResponseDTO.setUserId(cardInfoRequestDTO.getUserId());
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.of(cardInfoEntity));
+        when(userRepository.existsById(cardInfoRequestDTO.getUserId())).thenReturn(true);
         doNothing().when(cardInfoMapper).updateEntity(cardInfoRequestDTO, cardInfoEntity);
         when(cardInfoRepository.save(cardInfoEntity)).thenReturn(updatedCardInfoEntity);
         when(cardInfoMapper.toDTO(updatedCardInfoEntity)).thenReturn(cardInfoResponseDTO);

@@ -44,7 +44,7 @@ public class UserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return userMapper.toDTO(user);
-    }   
+    }
 
     public List<UserResponseDTO> getUsersByIds(List<Long> ids) {
         List<User> users = userRepository.findUsersByIds(ids);

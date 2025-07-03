@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.BeforeMapping;
 import org.mapstruct.ReportingPolicy;
+import org.mapstruct.Mapping;
 
 import com.example.userservice.dto.CardInfoRequestDTO;
 import com.example.userservice.dto.CardInfoResponseDTO;
@@ -13,6 +14,7 @@ import com.example.userservice.entities.CardInfo;
 public abstract class CardInfoMapper {
     public abstract CardInfo toEntity(CardInfoRequestDTO dto);
 
+    @Mapping(target = "userId", source = "entity.user.id")
     public abstract CardInfoResponseDTO toDTO(CardInfo entity);
 
     public abstract void updateEntity(CardInfoRequestDTO dto, @MappingTarget CardInfo entity);

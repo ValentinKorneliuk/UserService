@@ -10,6 +10,7 @@ public class CardInfoResponseDTO implements Serializable {
     private String number;
     private String holder;
     private LocalDate expirationDate;
+    private Long userId;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -22,4 +23,7 @@ public class CardInfoResponseDTO implements Serializable {
 
     public LocalDate getExpirationDate() { return expirationDate; }
     public void setExpirationDate(LocalDate expirationDate) { this.expirationDate = expirationDate; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

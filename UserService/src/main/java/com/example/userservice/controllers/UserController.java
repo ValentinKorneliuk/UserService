@@ -2,9 +2,9 @@ package com.example.userservice.controllers;
 
 import java.util.List;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,19 +30,19 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PostMapping
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestDTO));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping("/ids")
-    public ResponseEntity<List<UserResponseDTO>> getUsersByIds(@RequestParam @NotEmpty List<Long> ids) {
+    public ResponseEntity<List<UserResponseDTO>> getUsersByIds(@RequestParam List<Long> ids) {
         return ResponseEntity.ok(userService.getUsersByIds(ids));
-    }
-
-    @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        return ResponseEntity.ok(userService.createUser(userRequestDTO));
     }
 
     @PutMapping("/{id}")
