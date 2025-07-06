@@ -30,12 +30,12 @@ public class CardInfoService {
 
     @Transactional
     public CardInfoResponseDTO createCardInfo(CardInfoRequestDTO cardInfoRequestDTO) {
+        CardInfo cardInfo = cardInfoMapper.toEntity(cardInfoRequestDTO);
+        if (cardInfoRepository.existsByNumber(cardInfo.getNumber())) {
+            throw new ConflictException("Card info with number " + cardInfo.getNumber() + " already exists");
+        }
         User user = userRepository.findById(cardInfoRequestDTO.getUserId())
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (cardInfoRepository.existsByNumber(cardInfoRequestDTO.getNumber())) {
-            throw new ConflictException("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists");
-        }
-        CardInfo cardInfo = cardInfoMapper.toEntity(cardInfoRequestDTO);
         cardInfo.setUser(user);
         CardInfo savedCardInfo = cardInfoRepository.save(cardInfo);
         return cardInfoMapper.toDTO(savedCardInfo);
@@ -48,7 +48,7 @@ public class CardInfoService {
     }
 
     public List<CardInfoResponseDTO> getCardInfosByIds(List<Long> ids) {
-        List<CardInfo> cardInfos = cardInfoRepository.findAllById(ids);
+        List<CardInfo> cardInfos = cardInfoRepository.findCardsByIds(ids);
         return cardInfos.stream()
             .map(cardInfoMapper::toDTO)
             .collect(Collectors.toList());

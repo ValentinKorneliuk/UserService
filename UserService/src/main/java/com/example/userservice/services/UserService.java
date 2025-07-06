@@ -39,7 +39,7 @@ public class UserService {
     }
 
     public List<UserResponseDTO> getUsersByIds(List<Long> ids) {
-        List<User> users = userRepository.findAllById(ids);
+        List<User> users = userRepository.findUsersByIds(ids);
         return users.stream()
             .map(userMapper::toDTO)
             .collect(Collectors.toList());

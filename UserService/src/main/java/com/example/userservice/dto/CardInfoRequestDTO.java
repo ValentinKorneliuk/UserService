@@ -1,11 +1,16 @@
 package com.example.userservice.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Pattern;
+
 import java.time.LocalDate;
 
 public class CardInfoRequestDTO {
 
     @NotBlank(message = "Card number is required")
+    @Pattern(regexp = "^(\\d{4}[- ]?){3}\\d{4}$", message = "Card number must be 16 digits, optionally separated by spaces or hyphens")
     private String number;
 
     @NotBlank(message = "Card holder is required")

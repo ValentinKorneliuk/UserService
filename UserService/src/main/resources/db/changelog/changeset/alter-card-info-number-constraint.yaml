@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: alter-card-info-number-length-constraint
+      author: Valentin Korneliuk
+      changes:
+        - modifyDataType:
+            tableName: card_info
+            columnName: number
+            newDataType: VARCHAR(16)

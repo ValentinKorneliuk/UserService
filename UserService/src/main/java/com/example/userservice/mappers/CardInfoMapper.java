@@ -2,13 +2,26 @@ package com.example.userservice.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.BeforeMapping;
+import org.mapstruct.ReportingPolicy;
+
 import com.example.userservice.dto.CardInfoRequestDTO;
 import com.example.userservice.dto.CardInfoResponseDTO;
 import com.example.userservice.entities.CardInfo;
 
-@Mapper(componentModel = "spring")
-public interface CardInfoMapper {
-    CardInfo toEntity(CardInfoRequestDTO dto);
-    CardInfoResponseDTO toDTO(CardInfo entity);
-    void updateEntity(CardInfoRequestDTO dto, @MappingTarget CardInfo entity);
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public abstract class CardInfoMapper {
+    public abstract CardInfo toEntity(CardInfoRequestDTO dto);
+
+    public abstract CardInfoResponseDTO toDTO(CardInfo entity);
+
+    public abstract void updateEntity(CardInfoRequestDTO dto, @MappingTarget CardInfo entity);
+
+    @BeforeMapping
+    protected void cleanCardNumber(CardInfoRequestDTO dto) {
+        if (dto.getNumber() != null) {
+            dto.setNumber(dto.getNumber().replaceAll("[\\s-]", ""));
+        }
+    }
+
 }
