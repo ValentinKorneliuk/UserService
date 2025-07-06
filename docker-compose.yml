@@ -11,7 +11,6 @@ services:
       - "15432:5432"
     volumes:
       - user_service_data:/var/lib/postgresql/data/pgdata
-      - ./initdb:/docker-entrypoint-initdb.d
     networks:
       - user_service_network
     deploy:
@@ -38,6 +37,15 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+  
+  redisserver:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - 6379:6379
+    command: ["redis-server", "--requirepass", "redispassword", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
+    networks:
+      - user_service_network
 
 
 

@@ -1,9 +1,11 @@
 package com.example.userservice.dto;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class CardInfoResponseDTO {
-
+public class CardInfoResponseDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private String number;
     private String holder;
