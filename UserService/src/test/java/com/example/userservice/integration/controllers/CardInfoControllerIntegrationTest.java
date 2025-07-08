@@ -33,10 +33,9 @@ import com.example.userservice.services.CardInfoService;
 import com.example.userservice.exceptions.ResourceNotFoundException;
 import com.example.userservice.exceptions.ConflictException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.userservice.TestUtils;
 
 @WebMvcTest(CardInfoController.class)
-public class CardInfoControllerIT {
+public class CardInfoControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,7 +49,13 @@ public class CardInfoControllerIT {
     @Test
     public void getCardInfoById_shouldReturnCardInfo() throws Exception {
         Long cardInfoId = 1L;
-        CardInfoResponseDTO cardInfoResponseDTO = TestUtils.createCardInfoResponseDTO(cardInfoId, "1111222233334444", "John Doe", LocalDate.of(2027, 1, 1), 1L);
+        CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
+            .id(cardInfoId)
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .build();
+            
         when(cardInfoService.getCardInfoById(cardInfoId)).thenReturn(cardInfoResponseDTO);
         
         mockMvc.perform(get("/api/card-infos/{id}", cardInfoId)
@@ -84,9 +89,24 @@ public class CardInfoControllerIT {
     public void getCardInfosByIds_shouldReturnCardInfos() throws Exception {
         List<Long> cardInfoIds = Arrays.asList(1L, 2L, 3L);
         List<CardInfoResponseDTO> cardInfoResponseDTOs = new ArrayList<>();
-        cardInfoResponseDTOs.add(TestUtils.createCardInfoResponseDTO(1L, "1111222233334444", "John Doe", LocalDate.of(2027, 1, 1), 1L));
-        cardInfoResponseDTOs.add(TestUtils.createCardInfoResponseDTO(2L, "2222333344445555", "Jane Doe", LocalDate.of(2027, 1, 1), 1L));
-        cardInfoResponseDTOs.add(TestUtils.createCardInfoResponseDTO(3L, "3333444455556666", "Jim Beam", LocalDate.of(2027, 1, 1), 1L));
+        cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
+            .id(1L)
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .build());
+        cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
+            .id(2L)
+            .number("2222333344445555")
+            .holder("Jane Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .build());
+        cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
+            .id(3L)
+            .number("3333444455556666")
+            .holder("Jim Beam")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .build());
 
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenReturn(cardInfoResponseDTOs);
 
@@ -133,9 +153,19 @@ public class CardInfoControllerIT {
 
     @Test
     public void createCardInfo_shouldReturnCardInfo() throws Exception {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO("1111222233334444", "John Doe", LocalDate.of(2027, 1, 1), 1L);
-        CardInfoResponseDTO cardInfoResponseDTO = TestUtils.createCardInfoResponseDTO(1L, "1111222233334444", "John Doe", LocalDate.of(2027, 1, 1), 1L);
-        
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(1L)
+            .build();
+        CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
+            .id(1L)
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .build();
+
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class))).thenReturn(cardInfoResponseDTO);
         
         mockMvc.perform(post("/api/card-infos")
@@ -152,12 +182,12 @@ public class CardInfoControllerIT {
 
     @Test
     public void createCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "", 
-            " ", 
-            null,
-            null
-        );
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("")
+            .holder(" ")
+            .expirationDate(null)
+            .userId(null)
+            .build();
 
         mockMvc.perform(post("/api/card-infos")
             .contentType(MediaType.APPLICATION_JSON)
@@ -176,10 +206,12 @@ public class CardInfoControllerIT {
 
     @Test
     public void createCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "1111222233334444", 
-            "John Doe", 
-            LocalDate.of(2024, 1, 1), 1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2024, 1, 1))
+            .userId(1L)
+            .build();
 
         mockMvc.perform(post("/api/card-infos")
             .contentType(MediaType.APPLICATION_JSON)
@@ -194,10 +226,12 @@ public class CardInfoControllerIT {
 
     @Test
     public void createCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "1111222233334444", 
-            "John Doe", 
-            LocalDate.of(2027, 1, 1), 1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(1L)
+            .build();
 
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class))).thenThrow(new ConflictException("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists"));
 
@@ -214,10 +248,12 @@ public class CardInfoControllerIT {
 
     @Test
     public void createCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "1111222233334444", 
-            "John Doe", 
-            LocalDate.of(2027, 1, 1), 1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(1L)
+            .build();
 
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class))).thenThrow(new ResourceNotFoundException("User not found"));
 
@@ -235,9 +271,19 @@ public class CardInfoControllerIT {
     @Test
     public void updateCardInfo_shouldReturnCardInfo() throws Exception {
         Long cardInfoId = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO("1111222233334444", "John Doe", LocalDate.of(2027, 1, 1), 1L);
-        CardInfoResponseDTO cardInfoResponseDTO = TestUtils.createCardInfoResponseDTO(cardInfoId, "1111222233334444", "John Doe", LocalDate.of(2027, 1, 1), 1L);
-        
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(1L)
+            .build();
+        CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
+            .id(cardInfoId)
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .build();
+
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenReturn(cardInfoResponseDTO);
         
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
@@ -254,12 +300,12 @@ public class CardInfoControllerIT {
     @Test
     public void updateCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
         Long cardInfoId = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "", 
-            " ", 
-            null,
-            null
-        );
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("")
+            .holder(" ")
+            .expirationDate(null)
+            .userId(null)
+            .build();
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -279,10 +325,12 @@ public class CardInfoControllerIT {
     @Test
     public void updateCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
         Long cardInfoId = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "1111222233334444", 
-            "John Doe", 
-            LocalDate.of(2024, 1, 1), 1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2024, 1, 1))
+            .userId(1L)
+            .build();
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -298,10 +346,12 @@ public class CardInfoControllerIT {
     @Test
     public void updateCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
         Long cardInfoId = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "1111222233334444", 
-            "John Doe", 
-            LocalDate.of(2027, 1, 1), 1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(1L)
+            .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenThrow(new ConflictException("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists"));
 
@@ -319,10 +369,12 @@ public class CardInfoControllerIT {
     @Test
     public void updateCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
         Long cardInfoId = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "1111222233334444", 
-            "John Doe", 
-            LocalDate.of(2027, 1, 1), 1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(1L)
+            .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenThrow(new ResourceNotFoundException("Card info not found"));
 
@@ -340,10 +392,12 @@ public class CardInfoControllerIT {
     @Test
     public void updateCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         Long cardInfoId = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "1111222233334444", 
-            "John Doe", 
-            LocalDate.of(2027, 1, 1), 1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(1L)
+            .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenThrow(new ResourceNotFoundException("User not found"));
 

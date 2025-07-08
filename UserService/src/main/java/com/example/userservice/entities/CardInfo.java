@@ -9,9 +9,17 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 import java.time.LocalDate;
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "card_info")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CardInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,53 +37,4 @@ public class CardInfo {
 
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
-
-    public CardInfo(User user, String number, String holder, LocalDate expirationDate) {
-        this.user = user;
-        this.number = number;
-        this.holder = holder;
-        this.expirationDate = expirationDate;
-    }
-
-    public CardInfo() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public String getHolder() {
-        return holder;
-    }
-
-    public void setHolder(String holder) {
-        this.holder = holder;
-    }
-
-    public LocalDate getExpirationDate() {
-        return expirationDate;
-    }
-
-    public void setExpirationDate(LocalDate expirationDate) {
-        this.expirationDate = expirationDate;
-    }
 }

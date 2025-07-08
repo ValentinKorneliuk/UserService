@@ -3,19 +3,13 @@ package com.example.userservice.integration.EndToEnd;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import com.redis.testcontainers.RedisContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import com.example.userservice.repositories.CardInfoRepository;
 import com.example.userservice.repositories.UserRepository;
 import com.example.userservice.entities.User;
 import com.example.userservice.entities.CardInfo;
-import com.example.userservice.TestUtils;
 import com.example.userservice.dto.CardInfoRequestDTO;
 import com.example.userservice.dto.CardInfoResponseDTO;
+import com.example.userservice.integration.BaseContainerIntegrationTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpEntity;
@@ -29,27 +23,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Map;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 
-@Testcontainers
+@Sql(statements = {
+    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CardInfoEndToEndIT {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")
-        .withDatabaseName("testdb")
-        .withUsername("testuser")
-        .withPassword("testpass");
-
-    @Container
-    private static final RedisContainer redis = new RedisContainer(DockerImageName.parse("redis:8.0.2"));
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.data.redis.host", redis::getHost);
-    }
+public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
@@ -57,18 +40,41 @@ public class CardInfoEndToEndIT {
     @Autowired
     private UserRepository userRepository;
 
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.data.redis.password", () -> "testpass");
+    }
+
     User user1;
     CardInfo cardInfo1;
     CardInfo cardInfo2;
 
     @BeforeEach
     public void setUp() {
-        userRepository.deleteAll();
+        user1 = User.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("test1@example.com")
+            .build();
 
-        user1 = TestUtils.createUser("John", "Doe", LocalDate.of(1990, 1, 1), "test1@example.com");
-
-        cardInfo1 = TestUtils.createCardInfo("1111222233334444", "JOHN DOE", LocalDate.of(2025, 1, 1), user1);
-        cardInfo2 = TestUtils.createCardInfo("2222333344445555", "JANE DOE", LocalDate.of(2025, 1, 1), user1);
+        cardInfo1 = CardInfo.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2025, 1, 1))
+            .user(user1)
+            .build();
+        cardInfo2 = CardInfo.builder()
+            .number("2222333344445555")
+            .holder("Jane Doe")
+            .expirationDate(LocalDate.of(2025, 1, 1))
+            .user(user1)
+            .build();
 
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1, cardInfo2)));
         userRepository.saveAndFlush(user1);
@@ -77,7 +83,12 @@ public class CardInfoEndToEndIT {
     @Test
     public void createCardInfo_shouldReturnCreatedCardInfo() {
         String url = "/api/card-infos";
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO("3333444455556666", "JOHN DOE", LocalDate.of(2027, 1, 1), user1.getId());
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("3333444455556666")
+            .holder("JOHN DOE")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(user1.getId())
+            .build();
         
         ResponseEntity<CardInfoResponseDTO> response = testRestTemplate.exchange(
             url,
@@ -97,7 +108,12 @@ public class CardInfoEndToEndIT {
     @Test
     public void createCardInfo_shouldReturnBadRequest_whenCardInfoAlreadyExists() {
         String url = "/api/card-infos";
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO("1111222233334444", "JOHN DOE", LocalDate.of(2027, 1, 1), user1.getId());
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .holder("JOHN DOE")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(user1.getId())
+            .build();
         
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
             url,    
@@ -182,7 +198,12 @@ public class CardInfoEndToEndIT {
     @Test
     public void updateCardInfo_shouldReturnUpdatedCardInfo() {
         String url = String.format("/api/card-infos/%d", cardInfo1.getId());
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO("3333444455556666", "JOHN DOE", LocalDate.of(2030, 12, 31), user1.getId());
+            CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("3333444455556666")
+            .holder("JOHN DOE")
+            .expirationDate(LocalDate.of(2030, 12, 31))
+            .userId(user1.getId())
+            .build();
         ResponseEntity<CardInfoResponseDTO> response = testRestTemplate.exchange(
             url,
             HttpMethod.PUT,
@@ -201,7 +222,12 @@ public class CardInfoEndToEndIT {
     @Test
     public void updateCardInfo_shouldReturnConflict_whenCardInfoAlreadyExists() {
         String url = String.format("/api/card-infos/%d", cardInfo1.getId());
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO("2222333344445555", "JOHN DOE", LocalDate.of(2030, 12, 31), user1.getId());
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("2222333344445555")
+            .holder("JOHN DOE")
+            .expirationDate(LocalDate.of(2030, 12, 31))
+            .userId(user1.getId())
+            .build();
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
             url,
             HttpMethod.PUT,

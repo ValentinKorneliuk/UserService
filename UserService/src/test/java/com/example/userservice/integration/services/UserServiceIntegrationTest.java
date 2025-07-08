@@ -16,49 +16,30 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.containers.PostgreSQLContainer;
-import com.redis.testcontainers.RedisContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.test.context.jdbc.Sql;
+
 import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.entities.CardInfo;
 import com.example.userservice.entities.User;
+import com.example.userservice.integration.BaseContainerIntegrationTest;
 import com.example.userservice.repositories.UserRepository;
 import com.example.userservice.services.UserService;
 
 import com.example.userservice.exceptions.ConflictException;
-import com.example.userservice.TestUtils;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.Cache;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
-
+@Sql(statements = {
+    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest
-@Testcontainers
-public class UserServiceIT {
-
-    @Container
-    private static final RedisContainer redis = new RedisContainer(DockerImageName.parse("redis:8.0.2"));
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")
-        .withDatabaseName("testdb")
-        .withUsername("testuser")
-        .withPassword("testpass");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", redis::getFirstMappedPort);
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
+public class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private UserService userService;
@@ -69,18 +50,41 @@ public class UserServiceIT {
     @MockitoSpyBean
     private UserRepository userRepository;
 
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.data.redis.password", () -> "testpass");
+    }
+
     User user1;
     User user2;
     CardInfo cardInfo1;
 
     @BeforeEach
     void setUp() {
-        userRepository.deleteAll();
 
-        user1 = TestUtils.createUser("John", "Doe", LocalDate.of(1990, 1, 1), "test1@example.com");
-        user2 = TestUtils.createUser("Jane", "Doe", LocalDate.of(1990, 1, 1), "test2@example.com");
-
-        cardInfo1 = TestUtils.createCardInfo("1111222233334444", "John Doe", LocalDate.of(2025, 1, 1), user1);
+        user1 = User.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("test1@example.com")
+            .build();
+        user2 = User.builder()
+            .name("Jane")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("test2@example.com")
+            .build();
+        cardInfo1 = CardInfo.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2025, 1, 1))
+            .user(user1)
+            .build();
 
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1)));
         userRepository.saveAllAndFlush(List.of(user1, user2));
@@ -110,11 +114,12 @@ public class UserServiceIT {
 
     @Test
     public void updateUser_shouldRollbackTransactionOnConflict() {
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO(
-            "Jane", 
-            "Doe", LocalDate.of(1990, 1, 1), 
-            "test2@example.com"
-        );
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("Jane")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("test2@example.com")
+            .build();
 
         assertThrows(ConflictException.class, () -> {
             userService.updateUser(user1.getId(), userRequestDTO);
@@ -126,12 +131,12 @@ public class UserServiceIT {
 
     @Test
     public void updateUser_shouldPutUpdatedUserInCache() {
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO(
-            "Jane", 
-            "Doe", 
-            LocalDate.of(1990, 1, 1), 
-            "newemail@example.com"
-        );
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("Jane")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("newemail@example.com")
+            .build();
 
         userService.updateUser(user1.getId(), userRequestDTO);
 

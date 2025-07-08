@@ -12,13 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.containers.PostgreSQLContainer;
-import com.redis.testcontainers.RedisContainer;
-import org.testcontainers.utility.DockerImageName;
-import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.userservice.services.CardInfoService;
 import com.example.userservice.dto.CardInfoRequestDTO;
@@ -26,36 +19,25 @@ import com.example.userservice.entities.CardInfo;
 import com.example.userservice.entities.User;
 import org.springframework.cache.CacheManager;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
+
 import com.example.userservice.repositories.CardInfoRepository;
 import com.example.userservice.repositories.UserRepository;
+import com.example.userservice.integration.BaseContainerIntegrationTest;
 
 import org.springframework.cache.Cache;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.mappers.UserMapper;
 import com.example.userservice.exceptions.ConflictException;
-import com.example.userservice.TestUtils;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
+@Sql(statements = {
+    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest
-@Testcontainers
-public class CardInfoServiceIT {
-
-    @Container
-    private static final RedisContainer redis = new RedisContainer(DockerImageName.parse("redis:8.0.2"));
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")
-        .withDatabaseName("testdb")
-        .withUsername("testuser")
-        .withPassword("testpass");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", redis::getFirstMappedPort);
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
+public class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private CardInfoService cardInfoService;
@@ -72,18 +54,40 @@ public class CardInfoServiceIT {
     @MockitoSpyBean
     private UserRepository userRepository;
 
+    @DynamicPropertySource    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.data.redis.password", () -> "testpass");
+    }
+
     User user1;
     CardInfo cardInfo1;
     CardInfo cardInfo2;
 
     @BeforeEach
     void setUp() {
-        cardInfoRepository.deleteAll();
-        userRepository.deleteAll();
 
-        user1 = TestUtils.createUser("John", "Doe", LocalDate.of(1990, 1, 1), "test1@example.com");
-        cardInfo1 = TestUtils.createCardInfo("1111222233334444", "John Doe", LocalDate.of(2027, 1, 1), user1);
-        cardInfo2 = TestUtils.createCardInfo("2222333344445555", "Jane Doe", LocalDate.of(2027, 1, 1), user1);
+        user1 = User.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("test1@example.com")
+            .build();
+        cardInfo1 = CardInfo.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .user(user1)
+            .build();
+        cardInfo2 = CardInfo.builder()
+            .number("2222333344445555")
+            .holder("Jane Doe")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .user(user1)
+            .build();
 
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1, cardInfo2)));
 
@@ -92,12 +96,12 @@ public class CardInfoServiceIT {
 
     @Test
     public void createCardInfo_shouldCreateCardInfoAndDeleteUserFromCache() {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "3333444455556666", 
-            "JOHN DOE", 
-            LocalDate.of(2027, 1, 1), 
-            user1.getId()
-        );
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("3333444455556666")
+            .holder("JOHN DOE")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(user1.getId())
+            .build();
 
         Cache cache = cacheManager.getCache("users");
         assertNotNull(cache);
@@ -112,12 +116,12 @@ public class CardInfoServiceIT {
 
     @Test
     public void updateCardInfo_shouldRollbackTransactionOnConflict() {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "2222333344445555", 
-            "JOHN DOE", 
-            LocalDate.of(2027, 1, 1), 
-            user1.getId()
-        );
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("2222333344445555")
+            .holder("JOHN DOE")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(user1.getId())
+            .build();
 
 
         ConflictException conflictException = assertThrows(ConflictException.class, () -> {
@@ -128,12 +132,12 @@ public class CardInfoServiceIT {
 
     @Test
     public void updateCardInfo_shouldUpdateCardInfoAndDeleteUserFromCache() {
-        CardInfoRequestDTO cardInfoRequestDTO = TestUtils.createCardInfoRequestDTO(
-            "3333444455556666", 
-            "JOHN DOE", 
-            LocalDate.of(2027, 1, 1), 
-            user1.getId()
-        );
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("3333444455556666")
+            .holder("JOHN DOE")
+            .expirationDate(LocalDate.of(2027, 1, 1))
+            .userId(user1.getId())
+            .build();
 
         cardInfoService.updateCardInfo(cardInfo1.getId(), cardInfoRequestDTO);
 

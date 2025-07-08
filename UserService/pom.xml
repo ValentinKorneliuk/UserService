@@ -52,6 +52,12 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>1.5.5.Final</version>
@@ -141,8 +147,9 @@
                 </execution>
             </executions>
             <configuration>
+                <parallel>none</parallel>
                 <includes>
-                <include>**/*IT.java</include>
+                <include>**/*IntegrationTest.java</include>
                 </includes>
             </configuration>
         </plugin>

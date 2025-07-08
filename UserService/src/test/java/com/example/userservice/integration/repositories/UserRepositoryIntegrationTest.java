@@ -18,34 +18,32 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.test.context.jdbc.Sql;
 
+import com.example.userservice.integration.BaseContainerIntegrationTest;
 import com.example.userservice.entities.User;
 import com.example.userservice.entities.CardInfo;   
 import com.example.userservice.repositories.UserRepository;
-import com.example.userservice.TestUtils;
 
+@Sql(statements = {
+    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DataJpaTest
-@Testcontainers
-public class UserRepositoryIT {
+public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")
-        .withDatabaseName("test_db")
-        .withUsername("test_user")
-        .withPassword("test_password");
+    @Autowired
+    private UserRepository userRepository;
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.data.redis.password", () -> "testpass");
     }
-
-    @Autowired
-    private UserRepository userRepository;
 
     User user1;
     User user2;
@@ -54,13 +52,30 @@ public class UserRepositoryIT {
 
     @BeforeEach
     void setUp() {
-        user1 = TestUtils.createUser("John", "Doe", LocalDate.of(1990, 1, 1), "test1@example.com");
-        user2 = TestUtils.createUser("Jane", "Smith", LocalDate.of(1995, 2, 2), "test2@example.com");
-
-        user2 = TestUtils.createUser("Jane", "Smith", LocalDate.of(1995, 2, 2), "test2@example.com");
-
-        cardInfo1 = TestUtils.createCardInfo("1111222233334444", "John Doe", LocalDate.of(2025, 1, 1), user1);
-        cardInfo2 = TestUtils.createCardInfo("2222333344445555", "Jane Smith", LocalDate.of(2026, 2, 2), user2);
+        user1 = User.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("test1@example.com")
+            .build();
+        user2 = User.builder()
+            .name("Jane")
+            .surname("Smith")
+            .birthDate(LocalDate.of(1995, 2, 2))
+            .email("test2@example.com")
+            .build();
+        cardInfo1 = CardInfo.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2025, 1, 1))
+            .user(user1)
+            .build();
+        cardInfo2 = CardInfo.builder()
+            .number("2222333344445555")
+            .holder("Jane Smith")
+            .expirationDate(LocalDate.of(2026, 2, 2))
+            .user(user2)
+            .build();
 
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1)));
         user2.setCardInfos(new ArrayList<>(List.of(cardInfo2)));

@@ -34,10 +34,9 @@ import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.services.UserService;
 import com.example.userservice.exceptions.ResourceNotFoundException;
 import com.example.userservice.exceptions.ConflictException;
-import com.example.userservice.TestUtils;
 
 @WebMvcTest(UserController.class)
-public class UserControllerIT {
+public class UserControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,7 +50,13 @@ public class UserControllerIT {
     @Test
     public void getUserById_shouldReturnUser() throws Exception {
         Long userId = 1L;
-        UserResponseDTO userResponseDTO = TestUtils.createUserResponseDTO(userId, "John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+            .id(userId)
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
 
         when(userService.getUserById(userId)).thenReturn(userResponseDTO);
         
@@ -87,10 +92,28 @@ public class UserControllerIT {
     public void getUsersByIds_shouldReturnUsers() throws Exception {
         List<Long> userIds = Arrays.asList(1L, 2L, 3L);
         List<UserResponseDTO> userResponseDTOs = new ArrayList<>();
-        userResponseDTOs.add(TestUtils.createUserResponseDTO(1L, "John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com"));
-        userResponseDTOs.add(TestUtils.createUserResponseDTO(2L, "Jane", "Smith", LocalDate.of(1991, 2, 2), "jane.smith@example.com"));
-        userResponseDTOs.add(TestUtils.createUserResponseDTO(3L, "Jim", "Beam", LocalDate.of(1992, 3, 3), "jim.beam@example.com"));
-        
+        userResponseDTOs.add(UserResponseDTO.builder()
+            .id(1L)
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build());
+        userResponseDTOs.add(UserResponseDTO.builder()
+            .id(2L)
+            .name("Jane")
+            .surname("Smith")
+            .birthDate(LocalDate.of(1991, 2, 2))
+            .email("jane.smith@example.com")
+            .build());
+        userResponseDTOs.add(UserResponseDTO.builder()
+            .id(3L)
+            .name("Jim")
+            .surname("Beam")
+            .birthDate(LocalDate.of(1992, 3, 3))
+            .email("jim.beam@example.com")
+            .build());
+
         when(userService.getUsersByIds(userIds)).thenReturn(userResponseDTOs);
 
         mockMvc.perform(get("/api/users/ids")
@@ -134,9 +157,20 @@ public class UserControllerIT {
 
     @Test
     public void createUser_shouldReturnUser() throws Exception {
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO("John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
-        UserResponseDTO userResponseDTO = TestUtils.createUserResponseDTO(1L, "John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
-        
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+            .id(1L)
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
+
         when(userService.createUser(any(UserRequestDTO.class))).thenReturn(userResponseDTO);
 
         mockMvc.perform(post("/api/users")
@@ -153,12 +187,12 @@ public class UserControllerIT {
 
     @Test
     public void createUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO(
-            "", 
-            " ", 
-            null,
-            " "
-        );
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("")
+            .surname(" ")
+            .birthDate(null)
+            .email(" ")
+            .build();
         
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -180,12 +214,12 @@ public class UserControllerIT {
 
     @Test
     public void createUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO(
-            "JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn",
-            "DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe",
-            LocalDate.of(1990, 1, 1),
-            "john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com"
-        );
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
+            .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com")
+            .build();
 
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -204,7 +238,12 @@ public class UserControllerIT {
 
     @Test
     public void createUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO("John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
         
         when(userService.createUser(any(UserRequestDTO.class))).thenThrow(new ConflictException("Email already exists"));
 
@@ -223,9 +262,20 @@ public class UserControllerIT {
     @Test
     public void updateUser_shouldReturnUpdatedUser() throws Exception {
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO("John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
-        UserResponseDTO userResponseDTO = TestUtils.createUserResponseDTO(userId, "John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
-        
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+            .id(userId)
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
+
         when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenReturn(userResponseDTO);
 
         mockMvc.perform(put("/api/users/{id}", userId)
@@ -243,12 +293,12 @@ public class UserControllerIT {
     @Test
     public void updateUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO(
-            "", 
-            " ", 
-            null,
-            " "
-        );
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("")
+            .surname(" ")
+            .birthDate(null)
+            .email(" ")
+            .build();
         
         mockMvc.perform(put("/api/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -271,12 +321,12 @@ public class UserControllerIT {
     @Test
     public void updateUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO(
-            "JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn",
-            "DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe",
-            LocalDate.of(1990, 1, 1),
-            "john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com"
-        );
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
+            .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com")
+            .build();
 
         mockMvc.perform(put("/api/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -296,7 +346,12 @@ public class UserControllerIT {
     @Test
     public void updateUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO("John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
         
         when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenThrow(new ConflictException("Email already exists"));
 
@@ -315,7 +370,12 @@ public class UserControllerIT {
     @Test
     public void updateUser_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = TestUtils.createUserRequestDTO("John", "Doe", LocalDate.of(1990, 1, 1), "john.doe@example.com");
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("john.doe@example.com")
+            .build();
         
         when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenThrow(new ResourceNotFoundException("User not found"));
 

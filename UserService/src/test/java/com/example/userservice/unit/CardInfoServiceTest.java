@@ -64,19 +64,23 @@ public class CardInfoServiceTest {
     })
     public void createCardInfo_shouldReturnCardInfoResponseDTO_whenCardInfoDoesntExist(String number){
         String normalizedNumber = number.replaceAll("[\\s-]", "");
-        CardInfoRequestDTO cardInfoRequestDTO = new CardInfoRequestDTO();
-        cardInfoRequestDTO.setNumber(number);
-        cardInfoRequestDTO.setUserId(1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number(number)
+            .userId(1L)
+            .build();
         
-        CardInfo cardInfoEntity = new CardInfo();
-        cardInfoEntity.setNumber(normalizedNumber);
+        CardInfo cardInfoEntity = CardInfo.builder()
+            .number(normalizedNumber)
+            .build();
 
-        User userEntity = new User();
-        userEntity.setId(1L);
+        User userEntity = User.builder()
+            .id(1L)
+            .build();
 
-        CardInfoResponseDTO cardInfoResponseDTO = new CardInfoResponseDTO();
-        cardInfoResponseDTO.setId(1L);
-        cardInfoResponseDTO.setNumber(normalizedNumber);
+        CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
+            .id(1L)
+            .number(normalizedNumber)
+            .build();
 
         when(cardInfoMapper.toEntity(cardInfoRequestDTO)).thenReturn(cardInfoEntity);
         when(cardInfoRepository.existsByNumber(cardInfoEntity.getNumber())).thenReturn(false);
@@ -99,12 +103,14 @@ public class CardInfoServiceTest {
 
     @Test
     public void createCardInfo_shouldThrowConflictException_whenCardInfoAlreadyExists(){
-        CardInfoRequestDTO cardInfoRequestDTO = new CardInfoRequestDTO();
-        cardInfoRequestDTO.setNumber("1111222233334444");
-        cardInfoRequestDTO.setUserId(1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .userId(1L)
+            .build();
         
-        CardInfo cardInfoEntity = new CardInfo();
-        cardInfoEntity.setNumber("1111222233334444");
+        CardInfo cardInfoEntity = CardInfo.builder()
+            .number("1111222233334444")
+            .build();
 
         when(cardInfoMapper.toEntity(cardInfoRequestDTO)).thenReturn(cardInfoEntity);
         when(cardInfoRepository.existsByNumber(cardInfoRequestDTO.getNumber())).thenReturn(true);
@@ -123,12 +129,14 @@ public class CardInfoServiceTest {
 
     @Test
     public void createCardInfo_shouldThrowResourceNotFoundException_whenUserDoesntExist(){
-        CardInfoRequestDTO cardInfoRequestDTO = new CardInfoRequestDTO();
-        cardInfoRequestDTO.setNumber("1111222233334444");
-        cardInfoRequestDTO.setUserId(1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("1111222233334444")
+            .userId(1L)
+            .build();
         
-        CardInfo cardInfoEntity = new CardInfo();
-        cardInfoEntity.setNumber("1111222233334444");
+        CardInfo cardInfoEntity = CardInfo.builder()
+            .number("1111222233334444")
+            .build();
 
         when(cardInfoMapper.toEntity(cardInfoRequestDTO)).thenReturn(cardInfoEntity);
         when(cardInfoRepository.existsByNumber(cardInfoRequestDTO.getNumber())).thenReturn(false);
@@ -148,12 +156,14 @@ public class CardInfoServiceTest {
     
     @Test
     public void getCardInfoById_shouldReturnCardInfoResponseDTO_whenCardInfoExists(){
-        CardInfo cardInfoEntity = new CardInfo();
-        cardInfoEntity.setId(1L);
+        CardInfo cardInfoEntity = CardInfo.builder()
+            .id(1L)
+            .build();
 
-        CardInfoResponseDTO cardInfoResponseDTO = new CardInfoResponseDTO();
-        cardInfoResponseDTO.setId(1L);
-        cardInfoResponseDTO.setNumber("1111222233334444");
+        CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
+            .id(1L)
+            .number("1111222233334444")
+            .build();
         
         when(cardInfoRepository.findById(1L)).thenReturn(Optional.of(cardInfoEntity));
         when(cardInfoMapper.toDTO(cardInfoEntity)).thenReturn(cardInfoResponseDTO);
@@ -187,18 +197,22 @@ public class CardInfoServiceTest {
     @Test
     public void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenCardInfosExist(){
         List<Long> ids = Arrays.asList(1L, 2L);
-        CardInfo cardInfoEntity1 = new CardInfo();
-        cardInfoEntity1.setId(1L);
-        CardInfo cardInfoEntity2 = new CardInfo();
-        cardInfoEntity2.setId(2L);
+        CardInfo cardInfoEntity1 = CardInfo.builder()
+            .id(1L)
+            .build();
+        CardInfo cardInfoEntity2 = CardInfo.builder()
+            .id(2L)
+            .build();
 
         List<CardInfo> cardInfoEntities = Arrays.asList(cardInfoEntity1, cardInfoEntity2);
 
-        CardInfoResponseDTO cardInfoResponseDTO1 = new CardInfoResponseDTO();
-        cardInfoResponseDTO1.setId(1L);
+        CardInfoResponseDTO cardInfoResponseDTO1 = CardInfoResponseDTO.builder()
+            .id(1L)
+            .build();
 
-        CardInfoResponseDTO cardInfoResponseDTO2 = new CardInfoResponseDTO();
-        cardInfoResponseDTO2.setId(2L);
+        CardInfoResponseDTO cardInfoResponseDTO2 = CardInfoResponseDTO.builder()
+            .id(2L)
+            .build();
 
         when(cardInfoRepository.findCardsByIds(ids)).thenReturn(cardInfoEntities);
         when(cardInfoMapper.toDTO(cardInfoEntity1)).thenReturn(cardInfoResponseDTO1);
@@ -219,13 +233,15 @@ public class CardInfoServiceTest {
     @Test
     public void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenNotAllCardInfosExist(){
         List<Long> ids = Arrays.asList(1L, 2L);
-        CardInfo cardInfoEntity1 = new CardInfo();
-        cardInfoEntity1.setId(1L);
+        CardInfo cardInfoEntity1 = CardInfo.builder()
+            .id(1L)
+            .build();
 
         List<CardInfo> cardInfoEntities = Arrays.asList(cardInfoEntity1);
 
-        CardInfoResponseDTO cardInfoResponseDTO1 = new CardInfoResponseDTO();
-        cardInfoResponseDTO1.setId(1L);
+        CardInfoResponseDTO cardInfoResponseDTO1 = CardInfoResponseDTO.builder()
+            .id(1L)
+            .build();
 
         when(cardInfoRepository.findCardsByIds(ids)).thenReturn(cardInfoEntities);
         when(cardInfoMapper.toDTO(cardInfoEntity1)).thenReturn(cardInfoResponseDTO1);
@@ -258,30 +274,33 @@ public class CardInfoServiceTest {
     @Test
     public void updateCardInfo_shouldReturnUpdatedCardInfoResponseDTO_whenCardInfoExists(){
         Long id = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = new CardInfoRequestDTO();
-        cardInfoRequestDTO.setNumber("5555666677778888");
-        cardInfoRequestDTO.setHolder("NEW HOLDER");
-        cardInfoRequestDTO.setExpirationDate(LocalDate.of(2026, 12, 31));
-        cardInfoRequestDTO.setUserId(1L);
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("5555666677778888")
+            .holder("NEW HOLDER")
+            .expirationDate(LocalDate.of(2026, 12, 31))
+            .userId(1L)
+            .build();
         
-        CardInfo cardInfoEntity = new CardInfo();
-        cardInfoEntity.setId(id);
-        cardInfoEntity.setNumber("1111222233334444");
-        cardInfoEntity.setHolder("OLD HOLDER");
-        cardInfoEntity.setExpirationDate(LocalDate.of(2025, 1, 1));
+        CardInfo cardInfoEntity = CardInfo.builder()
+            .id(id)
+            .number("1111222233334444")
+            .holder("OLD HOLDER")
+            .expirationDate(LocalDate.of(2025, 1, 1))
+            .build();
 
-        CardInfo updatedCardInfoEntity = new CardInfo();
-        updatedCardInfoEntity.setId(id);
-        updatedCardInfoEntity.setNumber(cardInfoRequestDTO.getNumber());
-        updatedCardInfoEntity.setHolder(cardInfoRequestDTO.getHolder());
-        updatedCardInfoEntity.setExpirationDate(cardInfoRequestDTO.getExpirationDate());
+        CardInfo updatedCardInfoEntity = CardInfo.builder()
+            .id(id)
+            .number(cardInfoRequestDTO.getNumber())
+            .holder(cardInfoRequestDTO.getHolder())
+            .expirationDate(cardInfoRequestDTO.getExpirationDate())
+            .build();
 
-        CardInfoResponseDTO cardInfoResponseDTO = new CardInfoResponseDTO();
-        cardInfoResponseDTO.setId(id);
-        cardInfoResponseDTO.setNumber(cardInfoRequestDTO.getNumber());
-        cardInfoResponseDTO.setHolder(cardInfoRequestDTO.getHolder());
-        cardInfoResponseDTO.setExpirationDate(cardInfoRequestDTO.getExpirationDate());
-        cardInfoResponseDTO.setUserId(cardInfoRequestDTO.getUserId());
+        CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
+            .id(id)
+            .number(cardInfoRequestDTO.getNumber())
+            .holder(cardInfoRequestDTO.getHolder())
+            .expirationDate(cardInfoRequestDTO.getExpirationDate())
+            .build();
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.of(cardInfoEntity));
         when(userRepository.existsById(cardInfoRequestDTO.getUserId())).thenReturn(true);
@@ -306,7 +325,8 @@ public class CardInfoServiceTest {
     @Test
     public void updateCardInfo_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
         Long id = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = new CardInfoRequestDTO();
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .build();
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.empty());
 
@@ -326,12 +346,14 @@ public class CardInfoServiceTest {
     @Test
     public void updateCardInfo_shouldThrowConflictException_whenCardInfoNumberAlreadyExists(){
         Long id = 1L;
-        CardInfoRequestDTO cardInfoRequestDTO = new CardInfoRequestDTO();
-        cardInfoRequestDTO.setNumber("5555666677778888");
+        CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
+            .number("5555666677778888")
+            .build();
 
-        CardInfo cardInfoEntity = new CardInfo();
-        cardInfoEntity.setId(id);
-        cardInfoEntity.setNumber("1111222233334444");
+        CardInfo cardInfoEntity = CardInfo.builder()
+            .id(id)
+            .number("1111222233334444")
+            .build();
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.of(cardInfoEntity));
         when(cardInfoRepository.existsByNumber(cardInfoRequestDTO.getNumber())).thenReturn(true);
@@ -354,10 +376,14 @@ public class CardInfoServiceTest {
         Long id = 1L;
         Long userId = 1L;
 
-        CardInfo cardInfoEntity = new CardInfo();
-        User userEntity = new User();
-        userEntity.setId(userId);
-        cardInfoEntity.setUser(userEntity);
+        User userEntity = User.builder()
+            .id(userId)
+            .build();
+
+        CardInfo cardInfoEntity = CardInfo.builder()
+            .id(id)
+            .user(userEntity)
+            .build();
 
         Cache cache = mock(Cache.class);
 

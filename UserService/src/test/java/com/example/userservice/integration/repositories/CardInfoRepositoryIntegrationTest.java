@@ -6,15 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.BeforeEach;
-import com.example.userservice.TestUtils;
 import com.example.userservice.entities.CardInfo;
 import com.example.userservice.entities.User;
 import com.example.userservice.repositories.CardInfoRepository;
@@ -23,30 +16,34 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 
+import com.example.userservice.integration.BaseContainerIntegrationTest;
+
+@Sql(statements = {
+    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DataJpaTest
-@Testcontainers
-public class CardInfoRepositoryIT {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:17"))
-        .withDatabaseName("testdb")
-        .withUsername("testuser")
-        .withPassword("testpassword");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        postgres.start();
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
+public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private CardInfoRepository cardInfoRepository;
 
     @Autowired
     private UserRepository userRepository;
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.data.redis.password", () -> "testpass");
+    }
 
     User user1;
     User user2;
@@ -55,11 +52,31 @@ public class CardInfoRepositoryIT {
 
     @BeforeEach
     void setUp() {
-        user1 = TestUtils.createUser("John", "Doe", LocalDate.of(1990, 1, 1), "test1@example.com");
-        user2 = TestUtils.createUser("Jane", "Smith", LocalDate.of(1995, 2, 2), "test2@example.com");
+        user1 = User.builder()
+            .name("John")
+            .surname("Doe")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .email("test1@example.com")
+            .build();
+        user2 = User.builder()
+            .name("Jane")
+            .surname("Smith")
+            .birthDate(LocalDate.of(1995, 2, 2))
+            .email("test2@example.com")
+            .build();
 
-        cardInfo1 = TestUtils.createCardInfo("1111222233334444", "John Doe", LocalDate.of(2025, 1, 1), user1);
-        cardInfo2 = TestUtils.createCardInfo("2222333344445555", "Jane Smith", LocalDate.of(2026, 2, 2), user2);
+        cardInfo1 = CardInfo.builder()
+            .number("1111222233334444")
+            .holder("John Doe")
+            .expirationDate(LocalDate.of(2025, 1, 1))
+            .user(user1)
+            .build();
+        cardInfo2 = CardInfo.builder()
+            .number("2222333344445555")
+            .holder("Jane Smith")
+            .expirationDate(LocalDate.of(2026, 2, 2))
+            .user(user2)
+            .build();
 
         userRepository.saveAllAndFlush(new ArrayList<>(List.of(user1, user2)));
         cardInfoRepository.saveAllAndFlush(new ArrayList<>(List.of(cardInfo1, cardInfo2)));

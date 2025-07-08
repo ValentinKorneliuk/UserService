@@ -43,19 +43,23 @@ public class UserServiceTest {
 
     @Test
     public void createUser_shouldSaveAndReturnUserDTO_whenEmailDoesNotExist() {
-        UserRequestDTO userRequestDTO = new UserRequestDTO();
-        userRequestDTO.setEmail("test@test.com");
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .email("test@test.com")
+            .build();
 
-        User userEntity = new User();
-        userEntity.setEmail(userRequestDTO.getEmail());
+        User userEntity = User.builder()
+            .email(userRequestDTO.getEmail())
+            .build();
 
-        User savedUserEntity = new User();
-        savedUserEntity.setId(1L);
-        savedUserEntity.setEmail(userRequestDTO.getEmail());
+        User savedUserEntity = User.builder()
+            .id(1L)
+            .email(userRequestDTO.getEmail())
+            .build();
 
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setId(1L);
-        userResponseDTO.setEmail(userRequestDTO.getEmail());
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+            .id(1L)
+            .email(userRequestDTO.getEmail())
+            .build();
 
         when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(false);
         when(userMapper.toEntity(userRequestDTO)).thenReturn(userEntity);
@@ -76,8 +80,9 @@ public class UserServiceTest {
 
     @Test
     public void createUser_shouldThrowConflictException_whenEmailExists() {
-        UserRequestDTO userRequestDTO = new UserRequestDTO();
-        userRequestDTO.setEmail("test@test.com");
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .email("test@test.com")
+            .build();
 
         when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(true);
 
@@ -95,10 +100,13 @@ public class UserServiceTest {
     @Test
     public void getUserById_shouldReturnUserDTO_whenUserExists(){
         Long userId = 1L;
-        User userEntity = new User();
+        User userEntity = User.builder()
+            .id(userId)
+            .build();
 
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setId(userId);
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+            .id(userId)
+            .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userMapper.toDTO(userEntity)).thenReturn(userResponseDTO);
@@ -131,18 +139,22 @@ public class UserServiceTest {
     @Test
     public void getUsersByIds_shouldReturnUserDTOs_whenUsersExist(){
         List<Long> userIds = Arrays.asList(1L, 2L);
-        User userEntity1 = new User();
-        userEntity1.setId(1L);
-        User userEntity2 = new User();
-        userEntity2.setId(2L);
+        User userEntity1 = User.builder()
+            .id(1L)
+            .build();
+        User userEntity2 = User.builder()
+            .id(2L)
+            .build();
 
         List<User> userEntities = Arrays.asList(userEntity1, userEntity2);
 
-        UserResponseDTO userResponseDTO1 = new UserResponseDTO();
-        userResponseDTO1.setId(1L);
+        UserResponseDTO userResponseDTO1 = UserResponseDTO.builder()
+            .id(1L)
+            .build();
 
-        UserResponseDTO userResponseDTO2 = new UserResponseDTO();
-        userResponseDTO2.setId(2L);
+        UserResponseDTO userResponseDTO2 = UserResponseDTO.builder()
+            .id(2L)
+            .build();
 
         when(userRepository.findUsersByIds(userIds)).thenReturn(userEntities);
         when(userMapper.toDTO(userEntity1)).thenReturn(userResponseDTO1);
@@ -163,13 +175,15 @@ public class UserServiceTest {
     @Test
     public void getUsersByIds_shouldReturnUserDTOs_whenNotAllUsersExist(){
         List<Long> userIds = Arrays.asList(1L, 2L);
-        User userEntity1 = new User();
-        userEntity1.setId(1L);
+        User userEntity1 = User.builder()
+            .id(1L)
+            .build();
 
         List<User> userEntities = Arrays.asList(userEntity1);
 
-        UserResponseDTO userResponseDTO1 = new UserResponseDTO();
-        userResponseDTO1.setId(1L);
+        UserResponseDTO userResponseDTO1 = UserResponseDTO.builder()
+            .id(1L)
+            .build();
 
         when(userRepository.findUsersByIds(userIds)).thenReturn(userEntities);
         when(userMapper.toDTO(userEntity1)).thenReturn(userResponseDTO1);
@@ -201,12 +215,14 @@ public class UserServiceTest {
     @Test
     public void getUserByEmail_shouldReturnUserDTO_whenUserExists(){
         String email = "test@test.com";
-        User userEntity = new User();
-        userEntity.setEmail(email);
+        User userEntity = User.builder()
+            .email(email)
+            .build();
 
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setId(1L);
-        userResponseDTO.setEmail(email);
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+            .id(1L)
+            .email(email)
+            .build();
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(userEntity));
         when(userMapper.toDTO(userEntity)).thenReturn(userResponseDTO);
@@ -240,32 +256,36 @@ public class UserServiceTest {
     @Test
     public void updateUser_shouldReturnUpdatedUserDTO_whenUserExists(){
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = new UserRequestDTO();
-        userRequestDTO.setEmail("new@test.com");
-        userRequestDTO.setName("newName");
-        userRequestDTO.setSurname("newSurname");
-        userRequestDTO.setBirthDate(LocalDate.of(2000, 12, 31));
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .email("new@test.com")
+            .name("newName")
+            .surname("newSurname")
+            .birthDate(LocalDate.of(2000, 12, 31))
+            .build();
 
-        User userEntity = new User();
-        userEntity.setId(userId);
-        userEntity.setEmail("old@test.com");
-        userEntity.setName("oldName");
-        userEntity.setSurname("oldSurname");
-        userEntity.setBirthDate(LocalDate.of(1990, 2, 2));
+        User userEntity = User.builder()
+            .id(userId)
+            .email("old@test.com")
+            .name("oldName")
+            .surname("oldSurname")
+            .birthDate(LocalDate.of(1990, 2, 2))
+            .build();
 
-        User updatedUserEntity = new User();
-        updatedUserEntity.setId(userId);
-        updatedUserEntity.setEmail(userRequestDTO.getEmail());
-        updatedUserEntity.setName(userRequestDTO.getName());
-        updatedUserEntity.setSurname(userRequestDTO.getSurname());
-        updatedUserEntity.setBirthDate(userRequestDTO.getBirthDate());
+        User updatedUserEntity = User.builder()
+            .id(userId)
+            .email(userRequestDTO.getEmail())
+            .name(userRequestDTO.getName())
+            .surname(userRequestDTO.getSurname())
+            .birthDate(userRequestDTO.getBirthDate())
+            .build();
 
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setId(userId);
-        userResponseDTO.setEmail(userRequestDTO.getEmail());
-        userResponseDTO.setName(userRequestDTO.getName());
-        userResponseDTO.setSurname(userRequestDTO.getSurname());
-        userResponseDTO.setBirthDate(userRequestDTO.getBirthDate());
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+            .id(userId)
+            .email(userRequestDTO.getEmail())
+            .name(userRequestDTO.getName())
+            .surname(userRequestDTO.getSurname())
+            .birthDate(userRequestDTO.getBirthDate())
+            .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(false);
@@ -292,7 +312,9 @@ public class UserServiceTest {
     @Test
     public void updateUser_shouldThrowResourceNotFoundException_whenUserDoesntExists(){
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = new UserRequestDTO();
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .email("new@test.com")
+            .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -312,12 +334,14 @@ public class UserServiceTest {
     @Test
     public void updateUser_shouldThrowConflictException_whenEmailAlreadyExists(){
         Long userId = 1L;
-        UserRequestDTO userRequestDTO = new UserRequestDTO();
-        userRequestDTO.setEmail("new@test.com");
+        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
+            .email("new@test.com")
+            .build();
 
-        User userEntity = new User();
-        userEntity.setId(userId);
-        userEntity.setEmail("old@test.com");
+        User userEntity = User.builder()
+            .id(userId)
+            .email("old@test.com")
+            .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(true);
