@@ -3,7 +3,7 @@ ENV RELEASE=21
     
 WORKDIR /opt/build
     
-COPY target/UserService-*.jar ./application.jar
+COPY ./target/UserService-*.jar ./application.jar
     
 RUN java -Djarmode=layertools -jar application.jar extract
 
