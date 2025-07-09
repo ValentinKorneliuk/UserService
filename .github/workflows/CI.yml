@@ -100,8 +100,10 @@ jobs:
         id: get_tag
         run: echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
 
-      - name: Show TAG value
-        run: echo "TAG=${{ env.TAG }}"
+      - name: Move JAR to target directory
+        run: |
+          mkdir -p ./UserService/target
+          mv *.jar ./UserService/target/
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
