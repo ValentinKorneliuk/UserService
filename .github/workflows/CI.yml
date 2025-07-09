@@ -31,13 +31,14 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build with Maven and run tests
+        working-directory: UserService
         run: mvn clean install
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: target/*.jar
+          path: UserService/target/*.jar
 
   sonar-analysis:
     needs: build-and-test
