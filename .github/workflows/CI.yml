@@ -71,6 +71,7 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarCloud Analysis
+        working-directory: UserService
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
