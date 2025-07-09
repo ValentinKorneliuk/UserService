@@ -83,7 +83,6 @@ jobs:
 
   docker-build:
     needs: build-and-test
-    working-directory: UserService
     runs-on: ubuntu-latest
 
     steps:
@@ -111,6 +110,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
+        working-directory: UserService
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/user-service:${{ env.TAG }} .
 
       - name: Push Docker image
