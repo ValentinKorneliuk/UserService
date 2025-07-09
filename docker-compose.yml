@@ -38,7 +38,7 @@ services:
     tty: true
     stdin_open: true
   
-  redisserver:
+  redis:
     image: redis:8.0.2
     container_name: redis
     ports:
@@ -47,6 +47,16 @@ services:
     networks:
       - user_service_network
 
+  user_service:
+    image: valentine111111/user-service:v1
+    container_name: user_service
+    ports:
+      - 8081:8081
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+    restart: on-failure
+    networks:
+      - user_service_network
 
 
 volumes:

@@ -14,16 +14,15 @@ import com.example.userservice.entities.CardInfo;
 public abstract class CardInfoMapper {
     public abstract CardInfo toEntity(CardInfoRequestDTO dto);
 
-    @Mapping(target = "userId", source = "entity.user.id")
+    @Mapping(target = "userId", source = "user.id")
     public abstract CardInfoResponseDTO toDTO(CardInfo entity);
 
     public abstract void updateEntity(CardInfoRequestDTO dto, @MappingTarget CardInfo entity);
 
     @BeforeMapping
-    protected void cleanCardNumber(CardInfoRequestDTO dto) {
+    public void cleanCardNumber(CardInfoRequestDTO dto) {
         if (dto.getNumber() != null) {
             dto.setNumber(dto.getNumber().replaceAll("[\\s-]", ""));
         }
     }
-
 }
