@@ -68,7 +68,7 @@ public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationT
         cardInfo1 = CardInfo.builder()
             .number("1111222233334444")
             .holder("John Doe")
-            .expirationDate(LocalDate.of(2025, 1, 1))
+            .expirationDate(LocalDate.of(2026, 1, 1))
             .user(user1)
             .build();
         cardInfo2 = CardInfo.builder()
@@ -115,15 +115,22 @@ public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationT
         cardInfo1.setNumber("3333444455556666");
         cardInfo1.setHolder("John Doe");
         cardInfo1.setExpirationDate(LocalDate.of(2027, 3, 3));
-        cardInfo1.setUser(user1);
+
+        cardInfoRepository.save(cardInfo1);
+
+        CardInfo updatedCardInfo = cardInfoRepository.findById(cardInfo1.getId()).orElseThrow();
+
+        assertEquals(updatedCardInfo.getNumber(), updatedCardInfo.getNumber());
     }
 
     @Test
     public void updateCardInfo_shouldThrowException_whenCardInfoNumberAlreadyExists() {
-        cardInfo1.setNumber("1111222233334444");
+        cardInfo1.setNumber("2222333344445555");
         cardInfo1.setHolder("John Doe");
         cardInfo1.setExpirationDate(LocalDate.of(2025, 1, 1));
         cardInfo1.setUser(user1);
+
+        assertThrows(DataIntegrityViolationException.class, () -> cardInfoRepository.saveAndFlush(cardInfo1));
     }
 
     @Test

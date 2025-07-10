@@ -13,7 +13,6 @@ RUN $JAVA_HOME/bin/jlink \
     --strip-debug \
     --no-man-pages \
     --no-header-files \
-    --compress=2 \
     --output jdk
     
 

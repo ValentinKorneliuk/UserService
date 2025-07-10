@@ -48,7 +48,7 @@ services:
       - user_service_network
 
   user_service:
-    image: valentine111111/user-service:v1
+    image: valentine111111/user-service:v1.0.0
     container_name: user_service
     ports:
       - 8081:8081

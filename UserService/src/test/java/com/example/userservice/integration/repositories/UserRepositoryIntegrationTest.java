@@ -67,7 +67,7 @@ public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest 
         cardInfo1 = CardInfo.builder()
             .number("1111222233334444")
             .holder("John Doe")
-            .expirationDate(LocalDate.of(2025, 1, 1))
+            .expirationDate(LocalDate.of(2026, 1, 1))
             .user(user1)
             .build();
         cardInfo2 = CardInfo.builder()
