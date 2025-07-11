@@ -21,6 +21,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.core.ParameterizedTypeReference;
+
+import static com.example.userservice.exceptions.ConflictException.USER_ALREADY_EXISTS;
+import static com.example.userservice.exceptions.ResourceNotFoundException.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -33,7 +36,7 @@ import org.springframework.test.context.jdbc.Sql;
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
+class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
@@ -57,7 +60,7 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     CardInfo cardInfo2;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         user1 = User.builder()
             .name("John")
             .surname("Doe")
@@ -73,13 +76,13 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
         cardInfo1 = CardInfo.builder()
             .number("1111222233334444")
             .holder("John Doe")
-            .expirationDate(LocalDate.of(2025, 1, 1))
+            .expirationDate(LocalDate.of(2026, 1, 1))
             .user(user1)
             .build();
         cardInfo2 = CardInfo.builder()  
             .number("1111222233334445")
             .holder("Jane Doe")
-            .expirationDate(LocalDate.of(2025, 1, 1))
+            .expirationDate(LocalDate.of(2026, 1, 1))
             .user(user2)
             .build();
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1)));
@@ -89,7 +92,7 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
 
     @Test
-    public void createUser_shouldReturnCreatedUser() {
+    void createUser_shouldReturnCreatedUser() {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("Adam")
             .surname("Smith")
@@ -115,7 +118,7 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void createUser_shouldReturnBadRequest_whenEmailAlreadyExists() {
+    void createUser_shouldReturnBadRequest_whenEmailAlreadyExists() {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
             .surname("Doe")
@@ -133,11 +136,11 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
         
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertEquals("User with email test1@example.com already exists", response.getBody().get("message"));
+        assertEquals(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail()), response.getBody().get("message"));
     }
 
     @Test
-    public void getUserById_shouldReturnUser() {
+    void getUserById_shouldReturnUser() {
         String url = String.format("/api/users/%d", user1.getId());
 
         ResponseEntity<UserResponseDTO> response = testRestTemplate.exchange(
@@ -154,7 +157,7 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void getUserById_shouldReturnNotFound_whenUserDoesNotExist() {
+    void getUserById_shouldReturnNotFound_whenUserDoesNotExist() {
         String url = "/api/users/999";
 
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
@@ -166,11 +169,11 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("User not found", response.getBody().get("message"));
+        assertEquals(USER_NOT_FOUND, response.getBody().get("message"));
     }
 
     @Test
-    public void getUsersByIds_shouldReturnUsers() {
+    void getUsersByIds_shouldReturnUsers() {
         String url = String.format("/api/users/ids?ids=%d&ids=%d", user1.getId(), user2.getId());
         ResponseEntity<List<UserResponseDTO>> response = testRestTemplate.exchange(
             url,
@@ -189,7 +192,7 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void getUsersByIds_shouldReturnEmptyList_whenNoUsersFound() {
+    void getUsersByIds_shouldReturnEmptyList_whenNoUsersFound() {
         String url = "/api/users/ids?ids=999&ids=1000";
         ResponseEntity<List<UserResponseDTO>> response = testRestTemplate.exchange(
             url,
@@ -204,7 +207,7 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldReturnUpdatedUser() {
+    void updateUser_shouldReturnUpdatedUser() {
         String url = String.format("/api/users/%d", user1.getId());
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("Adam")
@@ -228,7 +231,7 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldReturnConflict_whenEmailAlreadyExists() {
+    void updateUser_shouldReturnConflict_whenEmailAlreadyExists() {
         String url = String.format("/api/users/%d", user1.getId());
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("Adam")
@@ -245,11 +248,14 @@ public class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("User with email test2@example.com already exists", response.getBody().get("message"));
+        assertEquals(
+            String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail()),
+            response.getBody().get("message")
+        );
     }
 
     @Test
-    public void deleteUser_shouldReturnNoContent() {
+    void deleteUser_shouldReturnNoContent() {
         String url = String.format("/api/users/%d", user1.getId());
         ResponseEntity<Void> response = testRestTemplate.exchange(
             url,

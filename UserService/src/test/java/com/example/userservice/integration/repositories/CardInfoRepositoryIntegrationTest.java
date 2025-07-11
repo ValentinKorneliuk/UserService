@@ -27,7 +27,7 @@ import com.example.userservice.integration.BaseContainerIntegrationTest;
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DataJpaTest
-public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
+class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private CardInfoRepository cardInfoRepository;
@@ -83,7 +83,7 @@ public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationT
     }
 
     @Test
-    public void saveCardInfo_shouldSaveCardInfo_whenCardInfoNumberUnique() {
+    void saveCardInfo_shouldSaveCardInfo_whenCardInfoNumberUnique() {
         CardInfo cardInfo = new CardInfo();
         cardInfo.setNumber("3333444455556666");
         cardInfo.setHolder("John Doe");
@@ -93,26 +93,27 @@ public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationT
         cardInfoRepository.save(cardInfo);
 
         CardInfo retrievedCardInfo = cardInfoRepository.findById(cardInfo.getId()).orElseThrow();
-        assertEquals(retrievedCardInfo.getNumber(), cardInfo.getNumber());
-        assertEquals(retrievedCardInfo.getHolder(), cardInfo.getHolder());
-        assertEquals(retrievedCardInfo.getExpirationDate(), cardInfo.getExpirationDate());
-        assertEquals(retrievedCardInfo.getUser().getId(), user1.getId());
+        assertEquals(cardInfo.getNumber(), retrievedCardInfo.getNumber());
+        assertEquals(cardInfo.getHolder(), retrievedCardInfo.getHolder());
+        assertEquals(cardInfo.getExpirationDate(), retrievedCardInfo.getExpirationDate());
+        assertEquals(user1.getId(), retrievedCardInfo.getUser().getId());
     }
 
     @Test
-    public void saveCardInfo_shouldThrowException_whenCardInfoNumberNotUnique() {
+    void saveCardInfo_shouldThrowException_whenCardInfoNumberNotUnique() {
         CardInfo cardInfo = new CardInfo();
         cardInfo.setNumber("1111222233334444");
         cardInfo.setHolder("Jane Smith");
-        cardInfo.setExpirationDate(LocalDate.of(2025, 1, 1));
+        cardInfo.setExpirationDate(LocalDate.of(2026, 1, 1));
         cardInfo.setUser(user2);
 
         assertThrows(DataIntegrityViolationException.class, () -> cardInfoRepository.save(cardInfo));
     }
 
     @Test
-    public void updateCardInfo_shouldUpdateCardInfo_whenCardInfoNumberUnique() {
-        cardInfo1.setNumber("3333444455556666");
+    void updateCardInfo_shouldUpdateCardInfo_whenCardInfoNumberUnique() {
+        String newNumber = "3333444455556666";
+        cardInfo1.setNumber(newNumber);
         cardInfo1.setHolder("John Doe");
         cardInfo1.setExpirationDate(LocalDate.of(2027, 3, 3));
 
@@ -120,11 +121,11 @@ public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationT
 
         CardInfo updatedCardInfo = cardInfoRepository.findById(cardInfo1.getId()).orElseThrow();
 
-        assertEquals(updatedCardInfo.getNumber(), updatedCardInfo.getNumber());
+        assertEquals(newNumber, updatedCardInfo.getNumber());
     }
 
     @Test
-    public void updateCardInfo_shouldThrowException_whenCardInfoNumberAlreadyExists() {
+    void updateCardInfo_shouldThrowException_whenCardInfoNumberAlreadyExists() {
         cardInfo1.setNumber("2222333344445555");
         cardInfo1.setHolder("John Doe");
         cardInfo1.setExpirationDate(LocalDate.of(2025, 1, 1));
@@ -134,36 +135,35 @@ public class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationT
     }
 
     @Test
-    public void deleteCardInfo_shouldDeleteCardInfo_whenCardInfosExist() {
+    void deleteCardInfo_shouldDeleteCardInfo_whenCardInfosExist() {
         Long cardInfoId = cardInfo1.getId();
         cardInfoRepository.deleteById(cardInfoId);
         Optional<CardInfo> retrievedCardInfo = cardInfoRepository.findById(cardInfoId);
-        assertEquals(retrievedCardInfo.isEmpty(), true);
+        assertEquals(true, retrievedCardInfo.isEmpty());
     }
 
     @Test
-    public void findCardsByIds_shouldReturnCardInfos_whenCardInfosExist() {
+    void findCardsByIds_shouldReturnCardInfos_whenCardInfosExist() {
         Long cardInfoId = cardInfo1.getId();
         CardInfo retrievedCardInfo = cardInfoRepository.findById(cardInfoId).orElseThrow();
-        assertEquals(retrievedCardInfo.getId(), cardInfo1.getId());
-        assertEquals(retrievedCardInfo.getNumber(), cardInfo1.getNumber());
-        assertEquals(retrievedCardInfo.getHolder(), cardInfo1.getHolder());
-        assertEquals(retrievedCardInfo.getExpirationDate(), cardInfo1.getExpirationDate());
-        assertEquals(retrievedCardInfo.getUser().getId(), user1.getId());
+        assertEquals(cardInfo1.getId(), retrievedCardInfo.getId());
+        assertEquals(cardInfo1.getNumber(), retrievedCardInfo.getNumber());
+        assertEquals(cardInfo1.getHolder(), retrievedCardInfo.getHolder());
+        assertEquals(cardInfo1.getExpirationDate(), retrievedCardInfo.getExpirationDate());
+        assertEquals(user1.getId(), retrievedCardInfo.getUser().getId());
     }
 
-
     @Test
-    public void existsByNumber_shouldReturnTrue_whenCardInfoExists() {
+    void existsByNumber_shouldReturnTrue_whenCardInfoExists() {
         String cardInfoNumber = cardInfo1.getNumber();
         boolean exists = cardInfoRepository.existsByNumber(cardInfoNumber);
-        assertEquals(exists, true);
+        assertEquals(true, exists);
     }
 
     @Test
-    public void existsByNumber_shouldReturnFalse_whenCardInfoDoesNotExist() {
+    void existsByNumber_shouldReturnFalse_whenCardInfoDoesNotExist() {
         String cardInfoNumber = "5555666677778888";
         boolean exists = cardInfoRepository.existsByNumber(cardInfoNumber);
-        assertEquals(exists, false);
+        assertEquals(false, exists);
     }
 }

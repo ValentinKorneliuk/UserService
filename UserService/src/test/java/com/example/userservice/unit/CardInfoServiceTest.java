@@ -38,8 +38,11 @@ import com.example.userservice.services.CardInfoService;
 import com.example.userservice.exceptions.ConflictException;
 import com.example.userservice.exceptions.ResourceNotFoundException;
 
+import static com.example.userservice.exceptions.ConflictException.CARD_INFO_ALREADY_EXISTS;
+import static com.example.userservice.exceptions.ResourceNotFoundException.CARD_INFO_NOT_FOUND;
+
 @ExtendWith(MockitoExtension.class)
-public class CardInfoServiceTest {
+class CardInfoServiceTest {
 
     @Mock
     CardInfoRepository cardInfoRepository;
@@ -62,7 +65,7 @@ public class CardInfoServiceTest {
         "1111-2222-3333-4444", 
         "1111 2222 3333 4444"
     })
-    public void createCardInfo_shouldReturnCardInfoResponseDTO_whenCardInfoDoesntExist(String number){
+    void createCardInfo_shouldReturnCardInfoResponseDTO_whenCardInfoDoesntExist(String number){
         String normalizedNumber = number.replaceAll("[\\s-]", "");
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number(number)
@@ -102,7 +105,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void createCardInfo_shouldThrowConflictException_whenCardInfoAlreadyExists(){
+    void createCardInfo_shouldThrowConflictException_whenCardInfoAlreadyExists(){
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .userId(1L)
@@ -119,7 +122,7 @@ public class CardInfoServiceTest {
             cardInfoService.createCardInfo(cardInfoRequestDTO);
         });
 
-        assertEquals("Card info with number 1111222233334444 already exists", exception.getMessage());
+        assertEquals(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber()), exception.getMessage());
 
         verify(cardInfoRepository).existsByNumber(cardInfoRequestDTO.getNumber());
         verify(userRepository, never()).findById(cardInfoRequestDTO.getUserId());
@@ -128,7 +131,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void createCardInfo_shouldThrowResourceNotFoundException_whenUserDoesntExist(){
+    void createCardInfo_shouldThrowResourceNotFoundException_whenUserDoesntExist(){
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .userId(1L)
@@ -155,7 +158,7 @@ public class CardInfoServiceTest {
     }
     
     @Test
-    public void getCardInfoById_shouldReturnCardInfoResponseDTO_whenCardInfoExists(){
+    void getCardInfoById_shouldReturnCardInfoResponseDTO_whenCardInfoExists(){
         CardInfo cardInfoEntity = CardInfo.builder()
             .id(1L)
             .build();
@@ -179,7 +182,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void getCardInfoById_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
+    void getCardInfoById_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
         Long id = 1L;
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.empty());
@@ -188,14 +191,14 @@ public class CardInfoServiceTest {
             cardInfoService.getCardInfoById(id);
         });
 
-        assertEquals("Card info not found", exception.getMessage());
+        assertEquals(CARD_INFO_NOT_FOUND, exception.getMessage());
 
         verify(cardInfoRepository).findById(id);
         verify(cardInfoMapper, never()).toDTO(any(CardInfo.class));
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenCardInfosExist(){
+    void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenCardInfosExist(){
         List<Long> ids = Arrays.asList(1L, 2L);
         CardInfo cardInfoEntity1 = CardInfo.builder()
             .id(1L)
@@ -231,7 +234,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenNotAllCardInfosExist(){
+    void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenNotAllCardInfosExist(){
         List<Long> ids = Arrays.asList(1L, 2L);
         CardInfo cardInfoEntity1 = CardInfo.builder()
             .id(1L)
@@ -257,7 +260,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnEmptyList_whenNoCardInfosExist(){
+    void getCardInfosByIds_shouldReturnEmptyList_whenNoCardInfosExist(){
         List<Long> ids = Arrays.asList(1L, 2L);
 
         when(cardInfoRepository.findCardsByIds(ids)).thenReturn(Collections.emptyList());
@@ -272,7 +275,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void updateCardInfo_shouldReturnUpdatedCardInfoResponseDTO_whenCardInfoExists(){
+    void updateCardInfo_shouldReturnUpdatedCardInfoResponseDTO_whenCardInfoExists(){
         Long id = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("5555666677778888")
@@ -323,7 +326,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void updateCardInfo_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
+    void updateCardInfo_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
         Long id = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .build();
@@ -334,7 +337,7 @@ public class CardInfoServiceTest {
             cardInfoService.updateCardInfo(id, cardInfoRequestDTO);
         });
 
-        assertEquals("Card info not found", exception.getMessage());
+        assertEquals(CARD_INFO_NOT_FOUND, exception.getMessage());
 
         verify(cardInfoRepository).findById(id);
         verify(cardInfoRepository, never()).existsByNumber(any());
@@ -344,10 +347,11 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void updateCardInfo_shouldThrowConflictException_whenCardInfoNumberAlreadyExists(){
+    void updateCardInfo_shouldThrowConflictException_whenCardInfoNumberAlreadyExists(){
         Long id = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("5555666677778888")
+            .userId(id)
             .build();
 
         CardInfo cardInfoEntity = CardInfo.builder()
@@ -362,7 +366,7 @@ public class CardInfoServiceTest {
             cardInfoService.updateCardInfo(id, cardInfoRequestDTO);
         });
 
-        assertEquals("Card info with number 5555666677778888 already exists", exception.getMessage());
+        assertEquals(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber()), exception.getMessage());
 
         verify(cardInfoRepository).findById(id);
         verify(cardInfoRepository).existsByNumber(cardInfoRequestDTO.getNumber());
@@ -372,7 +376,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void deleteCardInfo_shouldDeleteCardInfo_whenCardInfoExists(){
+    void deleteCardInfo_shouldDeleteCardInfo_whenCardInfoExists(){
         Long id = 1L;
         Long userId = 1L;
 
@@ -401,7 +405,7 @@ public class CardInfoServiceTest {
     }
 
     @Test
-    public void deleteCardInfo_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
+    void deleteCardInfo_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
         Long id = 1L;
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.empty());
@@ -410,7 +414,7 @@ public class CardInfoServiceTest {
             cardInfoService.deleteCardInfo(id);
         });
 
-        assertEquals("Card info not found", exception.getMessage());
+        assertEquals(CARD_INFO_NOT_FOUND, exception.getMessage());
 
         verify(cardInfoRepository).findById(id);
         verify(cardInfoRepository, never()).delete(any());

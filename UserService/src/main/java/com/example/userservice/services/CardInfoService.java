@@ -37,10 +37,12 @@ public class CardInfoService {
     public CardInfoResponseDTO createCardInfo(CardInfoRequestDTO cardInfoRequestDTO) {
         CardInfo cardInfo = cardInfoMapper.toEntity(cardInfoRequestDTO);
         if (cardInfoRepository.existsByNumber(cardInfo.getNumber())) {
-            throw new ConflictException("Card info with number " + cardInfo.getNumber() + " already exists");
+            throw new ConflictException(
+                String.format(ConflictException.CARD_INFO_ALREADY_EXISTS, cardInfo.getNumber())
+            );
         }
         User user = userRepository.findById(cardInfoRequestDTO.getUserId())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
         cardInfo.setUser(user);
         CardInfo savedCardInfo = cardInfoRepository.save(cardInfo);
         return cardInfoMapper.toDTO(savedCardInfo);
@@ -48,7 +50,7 @@ public class CardInfoService {
 
     public CardInfoResponseDTO getCardInfoById(Long id) {
         CardInfo cardInfo = cardInfoRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Card info not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.CARD_INFO_NOT_FOUND));
         return cardInfoMapper.toDTO(cardInfo);
     }
 
@@ -56,19 +58,21 @@ public class CardInfoService {
         List<CardInfo> cardInfos = cardInfoRepository.findCardsByIds(ids);
         return cardInfos.stream()
             .map(cardInfoMapper::toDTO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional
     @CacheEvict(value = "users", key = "#cardInfoRequestDTO.userId")
     public CardInfoResponseDTO updateCardInfo(Long id, CardInfoRequestDTO cardInfoRequestDTO) {
         CardInfo cardInfo = cardInfoRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Card info not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.CARD_INFO_NOT_FOUND));
         if (!cardInfo.getNumber().equals(cardInfoRequestDTO.getNumber()) && cardInfoRepository.existsByNumber(cardInfoRequestDTO.getNumber())) {
-            throw new ConflictException("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists");
+            throw new ConflictException(
+                String.format(ConflictException.CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())
+            );
         }
         if (!userRepository.existsById(cardInfoRequestDTO.getUserId())) {
-            throw new ResourceNotFoundException("User not found");
+            throw new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND);
         }
 
         cardInfoMapper.updateEntity(cardInfoRequestDTO, cardInfo);
@@ -79,7 +83,7 @@ public class CardInfoService {
     @Transactional
     public void deleteCardInfo(Long id) {
         CardInfo cardInfo = cardInfoRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Card info not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.CARD_INFO_NOT_FOUND));
         Long userId = cardInfo.getUser().getId();
         cardInfoRepository.delete(cardInfo);
         Cache cache = cacheManager.getCache("users");

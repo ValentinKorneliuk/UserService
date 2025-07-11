@@ -11,6 +11,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static com.example.userservice.exceptions.ConflictException.CARD_INFO_ALREADY_EXISTS;
+import static com.example.userservice.exceptions.ResourceNotFoundException.CARD_INFO_NOT_FOUND;
+import static com.example.userservice.exceptions.ResourceNotFoundException.USER_NOT_FOUND;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,13 +32,13 @@ import org.springframework.http.MediaType;
 import com.example.userservice.controllers.CardInfoController;
 import com.example.userservice.dto.CardInfoRequestDTO;
 import com.example.userservice.dto.CardInfoResponseDTO;
-import com.example.userservice.services.CardInfoService;
-import com.example.userservice.exceptions.ResourceNotFoundException;
 import com.example.userservice.exceptions.ConflictException;
+import com.example.userservice.exceptions.ResourceNotFoundException;
+import com.example.userservice.services.CardInfoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(CardInfoController.class)
-public class CardInfoControllerIntegrationTest {
+class CardInfoControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -47,7 +50,7 @@ public class CardInfoControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void getCardInfoById_shouldReturnCardInfo() throws Exception {
+    void getCardInfoById_shouldReturnCardInfo() throws Exception {
         Long cardInfoId = 1L;
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
             .id(cardInfoId)
@@ -69,10 +72,10 @@ public class CardInfoControllerIntegrationTest {
     }  
 
     @Test
-    public void getCardInfoById_shouldReturnNotFound() throws Exception {
+    void getCardInfoById_shouldReturnNotFound() throws Exception {
         Long cardInfoId = 1L;
 
-        when(cardInfoService.getCardInfoById(cardInfoId)).thenThrow(new ResourceNotFoundException("Card info not found"));
+        when(cardInfoService.getCardInfoById(cardInfoId)).thenThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND));
         
         mockMvc.perform(get("/api/card-infos/{id}", cardInfoId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -86,7 +89,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnCardInfos() throws Exception {
+    void getCardInfosByIds_shouldReturnCardInfos() throws Exception {
         List<Long> cardInfoIds = Arrays.asList(1L, 2L, 3L);
         List<CardInfoResponseDTO> cardInfoResponseDTOs = new ArrayList<>();
         cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
@@ -123,7 +126,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnEmptyList() throws Exception {
+    void getCardInfosByIds_shouldReturnEmptyList() throws Exception {
         List<Long> cardInfoIds = Arrays.asList();
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenReturn(new ArrayList<>());
         
@@ -136,7 +139,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnBadRequestOnAbsentIds() throws Exception {
+    void getCardInfosByIds_shouldReturnBadRequestOnAbsentIds() throws Exception {
         List<Long> cardInfoIds = Arrays.asList();
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenThrow(new IllegalArgumentException("ids parameter is missing"));
         
@@ -152,7 +155,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void createCardInfo_shouldReturnCardInfo() throws Exception {
+    void createCardInfo_shouldReturnCardInfo() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
@@ -181,7 +184,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void createCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
+    void createCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("")
             .holder(" ")
@@ -205,7 +208,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void createCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
+    void createCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
@@ -225,7 +228,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void createCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
+    void createCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
@@ -233,7 +236,8 @@ public class CardInfoControllerIntegrationTest {
             .userId(1L)
             .build();
 
-        when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class))).thenThrow(new ConflictException("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists"));
+        when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class)))
+            .thenThrow(new ConflictException(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())));
 
         mockMvc.perform(post("/api/card-infos")
             .contentType(MediaType.APPLICATION_JSON)
@@ -242,12 +246,12 @@ public class CardInfoControllerIntegrationTest {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.status").value(409))
             .andExpect(jsonPath("$.error").value("Conflict"))
-            .andExpect(jsonPath("$.message").value("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists"))
+            .andExpect(jsonPath("$.message").value(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())))
             .andExpect(jsonPath("$.path").value("/api/card-infos"));
-    }   
+    }
 
     @Test
-    public void createCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
+    void createCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
@@ -255,7 +259,8 @@ public class CardInfoControllerIntegrationTest {
             .userId(1L)
             .build();
 
-        when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class))).thenThrow(new ResourceNotFoundException("User not found"));
+        when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class)))
+            .thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(post("/api/card-infos")
             .contentType(MediaType.APPLICATION_JSON)
@@ -264,12 +269,12 @@ public class CardInfoControllerIntegrationTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.message").value("User not found"))
+            .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
             .andExpect(jsonPath("$.path").value("/api/card-infos"));
     }
 
     @Test
-    public void updateCardInfo_shouldReturnCardInfo() throws Exception {
+    void updateCardInfo_shouldReturnCardInfo() throws Exception {
         Long cardInfoId = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
@@ -298,7 +303,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void updateCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
+    void updateCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
         Long cardInfoId = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("")
@@ -323,7 +328,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void updateCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
+    void updateCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
         Long cardInfoId = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
@@ -344,7 +349,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void updateCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
+    void updateCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
         Long cardInfoId = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
@@ -353,7 +358,8 @@ public class CardInfoControllerIntegrationTest {
             .userId(1L)
             .build();
 
-        when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenThrow(new ConflictException("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists"));
+        when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
+            .thenThrow(new ConflictException(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())));
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -362,12 +368,12 @@ public class CardInfoControllerIntegrationTest {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.status").value(409))
             .andExpect(jsonPath("$.error").value("Conflict"))
-            .andExpect(jsonPath("$.message").value("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists"))
+            .andExpect(jsonPath("$.message").value(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())))
             .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
     }  
     
     @Test
-    public void updateCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
+    void updateCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
         Long cardInfoId = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
@@ -376,7 +382,8 @@ public class CardInfoControllerIntegrationTest {
             .userId(1L)
             .build();
 
-        when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenThrow(new ResourceNotFoundException("Card info not found"));
+        when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
+        .thenThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND));
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -390,7 +397,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void updateCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
+    void updateCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         Long cardInfoId = 1L;
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
@@ -399,7 +406,8 @@ public class CardInfoControllerIntegrationTest {
             .userId(1L)
             .build();
 
-        when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenThrow(new ResourceNotFoundException("User not found"));
+        when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
+        .thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -413,7 +421,7 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void deleteCardInfo_shouldReturnNoContent() throws Exception {
+    void deleteCardInfo_shouldReturnNoContent() throws Exception {
         Long cardInfoId = 1L;
         doNothing().when(cardInfoService).deleteCardInfo(cardInfoId);
         
@@ -424,9 +432,10 @@ public class CardInfoControllerIntegrationTest {
     }
 
     @Test
-    public void deleteCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
+    void deleteCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
         Long cardInfoId = 1L;
-        doThrow(new ResourceNotFoundException("Card info not found")).when(cardInfoService).deleteCardInfo(eq(cardInfoId));
+        doThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND))
+            .when(cardInfoService).deleteCardInfo(cardInfoId);
 
         mockMvc.perform(delete("/api/card-infos/{id}", cardInfoId)
             .contentType(MediaType.APPLICATION_JSON)

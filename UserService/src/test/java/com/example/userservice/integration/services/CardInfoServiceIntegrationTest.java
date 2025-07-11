@@ -32,12 +32,15 @@ import com.example.userservice.exceptions.ConflictException;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import static com.example.userservice.exceptions.ConflictException.CARD_INFO_ALREADY_EXISTS;
+
+
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest
-public class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest {
+class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private CardInfoService cardInfoService;
@@ -95,7 +98,7 @@ public class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest
     }
 
     @Test
-    public void createCardInfo_shouldCreateCardInfoAndDeleteUserFromCache() {
+    void createCardInfo_shouldCreateCardInfoAndDeleteUserFromCache() {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("3333444455556666")
             .holder("JOHN DOE")
@@ -115,7 +118,7 @@ public class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest
     }
 
     @Test
-    public void updateCardInfo_shouldRollbackTransactionOnConflict() {
+    void updateCardInfo_shouldRollbackTransactionOnConflict() {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("2222333344445555")
             .holder("JOHN DOE")
@@ -124,14 +127,16 @@ public class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest
             .build();
 
 
-        ConflictException conflictException = assertThrows(ConflictException.class, () -> {
-            cardInfoService.updateCardInfo(cardInfo1.getId(), cardInfoRequestDTO);
-        });
-        assertEquals("Card info with number 2222333344445555 already exists", conflictException.getMessage());
+        Long cardInfoId = cardInfo1.getId();
+        ConflictException conflictException = assertThrows(
+            ConflictException.class, 
+            () -> cardInfoService.updateCardInfo(cardInfoId, cardInfoRequestDTO)
+        );
+        assertEquals(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber()), conflictException.getMessage());
     }
 
     @Test
-    public void updateCardInfo_shouldUpdateCardInfoAndDeleteUserFromCache() {
+    void updateCardInfo_shouldUpdateCardInfoAndDeleteUserFromCache() {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("3333444455556666")
             .holder("JOHN DOE")
@@ -149,7 +154,7 @@ public class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest
     }
 
     @Test
-    public void deleteCardInfo_shouldDeleteCardInfoAndDeleteUserFromCache() {
+    void deleteCardInfo_shouldDeleteCardInfoAndDeleteUserFromCache() {
         Long cardInfoId = cardInfo1.getId();
 
         cardInfoService.deleteCardInfo(cardInfoId);

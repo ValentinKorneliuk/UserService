@@ -32,7 +32,9 @@ public class UserService {
 
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
         if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new ConflictException("User with email " + userRequestDTO.getEmail() + " already exists");
+            throw new ConflictException(
+                String.format(ConflictException.USER_ALREADY_EXISTS, userRequestDTO.getEmail())
+            );
         }
         User user = userMapper.toEntity(userRequestDTO);
         User savedUser = userRepository.save(user);
@@ -42,7 +44,7 @@ public class UserService {
     @Cacheable(key = "#id")
     public UserResponseDTO getUserById(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
         return userMapper.toDTO(user);
     }
 
@@ -50,13 +52,13 @@ public class UserService {
         List<User> users = userRepository.findUsersByIds(ids);
         return users.stream()
             .map(userMapper::toDTO)
-            .collect(Collectors.toList());
+            .toList();
     } 
 
     @Cacheable(key = "#email")
     public UserResponseDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
         return userMapper.toDTO(user);
     }
 
@@ -64,9 +66,11 @@ public class UserService {
     @CachePut(key = "#id")
     public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
         if (!user.getEmail().equals(userRequestDTO.getEmail()) && userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new ConflictException("User with email " + userRequestDTO.getEmail() + " already exists");
+            throw new ConflictException(
+                String.format(ConflictException.USER_ALREADY_EXISTS, userRequestDTO.getEmail())
+            );
         }
         userMapper.updateEntity(userRequestDTO, user);
         User updatedUser = userRepository.save(user);
