@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cache.CacheManager;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.cache.Cache;
 
 import java.time.LocalDate;
@@ -41,6 +42,7 @@ import com.example.userservice.exceptions.ResourceNotFoundException;
 import static com.example.userservice.exceptions.ConflictException.CARD_INFO_ALREADY_EXISTS;
 import static com.example.userservice.exceptions.ResourceNotFoundException.CARD_INFO_NOT_FOUND;
 
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class CardInfoServiceTest {
 

@@ -24,8 +24,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 
@@ -37,7 +39,9 @@ import com.example.userservice.exceptions.ResourceNotFoundException;
 import com.example.userservice.services.CardInfoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@ActiveProfiles("test")
 @WebMvcTest(CardInfoController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class CardInfoControllerIntegrationTest {
 
     @Autowired

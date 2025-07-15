@@ -9,6 +9,7 @@ import com.example.userservice.entities.CardInfo;
 import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.integration.BaseContainerIntegrationTest;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -26,11 +27,13 @@ import static com.example.userservice.exceptions.ConflictException.USER_ALREADY_
 import static com.example.userservice.exceptions.ResourceNotFoundException.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 
-
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"

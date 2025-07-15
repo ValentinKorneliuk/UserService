@@ -31,9 +31,12 @@ import com.example.userservice.exceptions.ConflictException;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.Cache;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"

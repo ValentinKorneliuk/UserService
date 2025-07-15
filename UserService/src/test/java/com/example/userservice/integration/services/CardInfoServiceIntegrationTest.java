@@ -29,12 +29,15 @@ import org.springframework.cache.Cache;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.mappers.UserMapper;
 import com.example.userservice.exceptions.ConflictException;
+
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 import static com.example.userservice.exceptions.ConflictException.CARD_INFO_ALREADY_EXISTS;
 
 
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"

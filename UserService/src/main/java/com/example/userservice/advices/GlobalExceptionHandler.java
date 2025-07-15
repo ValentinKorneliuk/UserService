@@ -18,6 +18,7 @@ import com.example.userservice.dto.ErrorResponseDTO;
 import com.example.userservice.exceptions.ConflictException;
 import com.example.userservice.exceptions.ResourceNotFoundException;
 
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

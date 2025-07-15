@@ -16,12 +16,15 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 
 import com.example.userservice.integration.BaseContainerIntegrationTest;
 
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"

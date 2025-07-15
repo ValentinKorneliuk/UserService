@@ -1,7 +1,7 @@
 services:
-  user_service_db:
+  user-service-db:
     image: postgres:17
-    container_name: user_service_db
+    container_name: user-service-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -12,7 +12,7 @@ services:
     volumes:
       - user_service_data:/var/lib/postgresql/data/pgdata
     networks:
-      - user_service_network
+      - orders_handling_application_network
     deploy:
       resources:
         limits:
@@ -45,24 +45,23 @@ services:
       - 6379:6379
     command: ["redis-server", "--requirepass", "redispassword", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
     networks:
-      - user_service_network
+      - orders_handling_application_network
 
-  user_service:
+  user-service:
     image: valentine111111/user-service:v1.0.0
-    container_name: user_service
+    container_name: user-service
     ports:
       - 8081:8081
     environment:
       - "SPRING_PROFILES_ACTIVE=docker"
-    restart: on-failure
+    restart: unless-stopped
     networks:
-      - user_service_network
-
-
+      - orders_handling_application_network
+  
 volumes:
   user_service_data:
     driver: local
 
 networks:
-  user_service_network:
+  orders_handling_application_network:
     driver: bridge

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://user_service_db:5432/user_service_db
+    url: jdbc:postgresql://user-service-db:5432/user_service_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -9,3 +9,6 @@ spring:
       host: redis
       port: 6379
       password: redispassword
+
+auth:
+  public-key-url: http://auth-service:8082/public-key

@@ -3,12 +3,14 @@ package com.example.userservice.integration.EndToEnd;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+
 import com.example.userservice.repositories.UserRepository;
 import com.example.userservice.entities.User;
 import com.example.userservice.entities.CardInfo;
 import com.example.userservice.dto.CardInfoRequestDTO;
 import com.example.userservice.dto.CardInfoResponseDTO;
 import com.example.userservice.integration.BaseContainerIntegrationTest;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpEntity;
@@ -25,10 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Map;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
