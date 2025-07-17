@@ -10,4 +10,4 @@ spring:
       port: 6379
       password: redispassword
 auth:
-  public-key-url: http://localhost:8082/public-key
+  public-key-url: http://localhost:8082/.well-known/jwks.json
