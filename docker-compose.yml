@@ -1,6 +1,6 @@
 services:
   user_service_db:
-    image: postgres:latest
+    image: postgres:17
     container_name: user_service_db
     environment:
       POSTGRES_USER: postgres
@@ -38,8 +38,8 @@ services:
     tty: true
     stdin_open: true
   
-  redisserver:
-    image: redis:alpine
+  redis:
+    image: redis:8.0.2
     container_name: redis
     ports:
       - 6379:6379
@@ -47,6 +47,16 @@ services:
     networks:
       - user_service_network
 
+  user_service:
+    image: valentine111111/user-service:v1.0.0
+    container_name: user_service
+    ports:
+      - 8081:8081
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+    restart: on-failure
+    networks:
+      - user_service_network
 
 
 volumes:

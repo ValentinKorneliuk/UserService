@@ -1,13 +1,13 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: user-service
+  profiles:
+    active: local
   liquibase:
     enabled: true
-  datasource:
-    url: jdbc:postgresql://localhost:15432/user_service_db
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: none
@@ -15,11 +15,3 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: redispassword
-
-server:
-  port: 8081

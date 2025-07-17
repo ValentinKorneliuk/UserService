@@ -33,7 +33,6 @@ public class CardInfoService {
         this.cacheManager = cacheManager;
     }
 
-    @Transactional
     @CacheEvict(value = "users", key = "#cardInfoRequestDTO.userId")
     public CardInfoResponseDTO createCardInfo(CardInfoRequestDTO cardInfoRequestDTO) {
         CardInfo cardInfo = cardInfoMapper.toEntity(cardInfoRequestDTO);
@@ -65,6 +64,13 @@ public class CardInfoService {
     public CardInfoResponseDTO updateCardInfo(Long id, CardInfoRequestDTO cardInfoRequestDTO) {
         CardInfo cardInfo = cardInfoRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Card info not found"));
+        if (!cardInfo.getNumber().equals(cardInfoRequestDTO.getNumber()) && cardInfoRepository.existsByNumber(cardInfoRequestDTO.getNumber())) {
+            throw new ConflictException("Card info with number " + cardInfoRequestDTO.getNumber() + " already exists");
+        }
+        if (!userRepository.existsById(cardInfoRequestDTO.getUserId())) {
+            throw new ResourceNotFoundException("User not found");
+        }
+
         cardInfoMapper.updateEntity(cardInfoRequestDTO, cardInfo);
         CardInfo updatedCardInfo = cardInfoRepository.save(cardInfo);
         return cardInfoMapper.toDTO(updatedCardInfo);
