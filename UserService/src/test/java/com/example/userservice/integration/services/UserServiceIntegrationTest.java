@@ -3,6 +3,7 @@ package com.example.userservice.integration.services;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
@@ -95,7 +96,7 @@ class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getUserById_shouldUserCacheOnSecondCall() {
-        Long userId = user1.getId();
+        UUID userId = user1.getId();
 
         UserResponseDTO firstCall = userService.getUserById(userId);
         UserResponseDTO secondCall = userService.getUserById(userId);
@@ -124,7 +125,7 @@ class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
             .email("test2@example.com")
             .build();
 
-        Long userId = user1.getId();
+        UUID userId = user1.getId();
         assertThrows(ConflictException.class, () -> userService.updateUser(userId, userRequestDTO));
 
         User unchangedUser = userRepository.findById(user1.getId()).orElseThrow();
@@ -152,7 +153,7 @@ class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void deleteUser_shouldDeleteUserFromCache() {
-        Long userId = user1.getId();
+        UUID userId = user1.getId();
         userService.deleteUser(userId);
 
         Cache cache = cacheManager.getCache("users");

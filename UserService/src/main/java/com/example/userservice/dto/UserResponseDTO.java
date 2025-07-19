@@ -3,6 +3,7 @@ package com.example.userservice.dto;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +13,7 @@ import lombok.Data;
 public class UserResponseDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     
-    private Long id;
+    private UUID id;
     private String name;
     private String surname;
     private LocalDate birthDate;

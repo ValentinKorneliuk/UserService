@@ -1,13 +1,13 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:15432/user_service_db
-    username: postgres
-    password: postgres
+    username: ${USER_SERVICE_DATABASE_USER}
+    password: ${USER_SERVICE_DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   data:
     redis:
       host: localhost
       port: 6379
-      password: redispassword
+      password: ${REDIS_PASSWORD}
 auth:
   public-key-url: http://localhost:8082/.well-known/jwks.json

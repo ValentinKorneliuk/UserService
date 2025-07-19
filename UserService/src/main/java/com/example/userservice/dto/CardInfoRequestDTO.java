@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -25,5 +26,5 @@ public class CardInfoRequestDTO {
     private LocalDate expirationDate;
 
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private UUID userId;
 }

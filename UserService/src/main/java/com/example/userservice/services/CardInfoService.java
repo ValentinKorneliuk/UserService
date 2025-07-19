@@ -1,6 +1,7 @@
 package com.example.userservice.services;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -48,13 +49,13 @@ public class CardInfoService {
         return cardInfoMapper.toDTO(savedCardInfo);
     }
 
-    public CardInfoResponseDTO getCardInfoById(Long id) {
+    public CardInfoResponseDTO getCardInfoById(UUID id) {
         CardInfo cardInfo = cardInfoRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.CARD_INFO_NOT_FOUND));
         return cardInfoMapper.toDTO(cardInfo);
     }
 
-    public List<CardInfoResponseDTO> getCardInfosByIds(List<Long> ids) {
+    public List<CardInfoResponseDTO> getCardInfosByIds(List<UUID> ids) {
         List<CardInfo> cardInfos = cardInfoRepository.findCardsByIds(ids);
         return cardInfos.stream()
             .map(cardInfoMapper::toDTO)
@@ -63,7 +64,7 @@ public class CardInfoService {
 
     @Transactional
     @CacheEvict(value = "users", key = "#cardInfoRequestDTO.userId")
-    public CardInfoResponseDTO updateCardInfo(Long id, CardInfoRequestDTO cardInfoRequestDTO) {
+    public CardInfoResponseDTO updateCardInfo(UUID id, CardInfoRequestDTO cardInfoRequestDTO) {
         CardInfo cardInfo = cardInfoRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.CARD_INFO_NOT_FOUND));
         if (!cardInfo.getNumber().equals(cardInfoRequestDTO.getNumber()) && cardInfoRepository.existsByNumber(cardInfoRequestDTO.getNumber())) {
@@ -81,10 +82,10 @@ public class CardInfoService {
     } 
 
     @Transactional
-    public void deleteCardInfo(Long id) {
+    public void deleteCardInfo(UUID id) {
         CardInfo cardInfo = cardInfoRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.CARD_INFO_NOT_FOUND));
-        Long userId = cardInfo.getUser().getId();
+        UUID userId = cardInfo.getUser().getId();
         cardInfoRepository.delete(cardInfo);
         Cache cache = cacheManager.getCache("users");
         if (cache != null) {

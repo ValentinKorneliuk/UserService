@@ -2,6 +2,8 @@ package com.example.userservice.dto;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.UUID;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,10 +12,10 @@ import lombok.Data;
 public class CardInfoResponseDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     
-    private Long id;
+    private UUID id;
     private String number;
     private String holder;
     private LocalDate expirationDate;
-    private Long userId;
+    private UUID userId;
 
 }

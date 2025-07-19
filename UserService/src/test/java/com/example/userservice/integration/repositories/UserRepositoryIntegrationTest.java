@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -91,7 +92,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
         user.setSurname("Smith");
         user.setBirthDate(LocalDate.of(1992, 3, 20));
 
-        Long savedUserId = userRepository.save(user).getId();
+        UUID savedUserId = userRepository.save(user).getId();
 
         Optional<User> retrievedUser = userRepository.findById(savedUserId);
         assertNotNull(retrievedUser);
@@ -109,7 +110,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
         user.setSurname("Smith");
         user.setBirthDate(LocalDate.of(1995, 2, 15));
 
-        assertThrows(DataIntegrityViolationException.class, () -> userRepository.save(user));   
+        assertThrows(DataIntegrityViolationException.class, () -> userRepository.saveAndFlush(user));
     }
 
     @Test
@@ -141,7 +142,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void deleteUser_shouldDeleteUser_whenUserExists() {
-        Long userId = user1.getId();
+        UUID userId = user1.getId();
         userRepository.deleteById(userId);
         Optional<User> retrievedUser = userRepository.findById(userId);
         assertEquals(true, retrievedUser.isEmpty());
@@ -149,7 +150,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void findById_shouldReturnUserWithCardInfos_whenUserExists() {
-        Long userId = user1.getId();
+        UUID userId = user1.getId();
         
         Optional<User> retrievedUser = userRepository.findById(userId);
 
@@ -160,7 +161,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void findById_shouldReturnNull_whenUserDoesNotExist() {
-        Long userId = 100L;
+        UUID userId = UUID.randomUUID();
         Optional<User> retrievedUser = userRepository.findById(userId);
         assertEquals(true, retrievedUser.isEmpty());
     }
@@ -185,7 +186,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void findUsersByIds_shouldReturnUsersWithCardInfos_whenUsersExist() {
-        List<Long> userIds = List.of(user1.getId(), user2.getId());
+        List<UUID> userIds = List.of(user1.getId(), user2.getId());
 
         List<User> retrievedUsers = userRepository.findUsersByIds(userIds);
 

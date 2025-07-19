@@ -10,10 +10,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.OneToMany;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.UUID;
+
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "users")
@@ -23,8 +26,9 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @UuidGenerator
+    private UUID id;
 
     @Column(name = "name")
     private String name;

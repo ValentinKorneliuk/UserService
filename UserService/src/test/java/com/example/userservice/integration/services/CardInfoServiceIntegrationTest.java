@@ -3,6 +3,7 @@ package com.example.userservice.integration.services;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -129,8 +130,7 @@ class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest {
             .userId(user1.getId())
             .build();
 
-
-        Long cardInfoId = cardInfo1.getId();
+        UUID cardInfoId = cardInfo1.getId();
         ConflictException conflictException = assertThrows(
             ConflictException.class, 
             () -> cardInfoService.updateCardInfo(cardInfoId, cardInfoRequestDTO)
@@ -158,7 +158,7 @@ class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void deleteCardInfo_shouldDeleteCardInfoAndDeleteUserFromCache() {
-        Long cardInfoId = cardInfo1.getId();
+        UUID cardInfoId = cardInfo1.getId();
 
         cardInfoService.deleteCardInfo(cardInfoId);
 
