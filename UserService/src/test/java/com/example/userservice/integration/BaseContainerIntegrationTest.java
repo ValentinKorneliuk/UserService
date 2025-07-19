@@ -1,9 +1,11 @@
 package com.example.userservice.integration;
 
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import com.redis.testcontainers.RedisContainer;
 
+@ActiveProfiles("test")
 public abstract class BaseContainerIntegrationTest {
 
     public static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")

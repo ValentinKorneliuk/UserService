@@ -1,9 +1,7 @@
 package com.example.userservice.advices;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -16,6 +14,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.example.userservice.dto.ErrorResponseDTO;
 import com.example.userservice.exceptions.ConflictException;
 import com.example.userservice.exceptions.ResourceNotFoundException;
 
@@ -23,89 +22,108 @@ import com.example.userservice.exceptions.ResourceNotFoundException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
-        errorBody.put("timestamp", LocalDateTime.now());
-        errorBody.put("status", HttpStatus.NOT_FOUND.value());
-        errorBody.put("error", "Not found");
-        errorBody.put("message", ex.getMessage());
-        errorBody.put("path", request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorBody);
+    public ResponseEntity<ErrorResponseDTO> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.NOT_FOUND,
+                "Not found",
+                ex.getMessage(),
+                request.getRequestURI(),
+                null
+        );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
-        errorBody.put("timestamp", LocalDateTime.now());
-        errorBody.put("status", HttpStatus.BAD_REQUEST.value());
-        errorBody.put("error", "Validation failed");
-
-        List<String> messages = ex.getBindingResult().getFieldErrors().stream()
-            .map(field -> field.getField() + ": " + field.getDefaultMessage())
-            .toList();
-
-        errorBody.put("messages", messages);
-        errorBody.put("path", request.getRequestURI());
-        return ResponseEntity.badRequest().body(errorBody);
+    public ResponseEntity<ErrorResponseDTO> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                "Validation errors",
+                request.getRequestURI(),
+                getValidationExceptionErrorMessages(ex)
+        );
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<Map<String, Object>> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
-        errorBody.put("timestamp", LocalDateTime.now());
-        errorBody.put("status", HttpStatus.BAD_REQUEST.value());
-        errorBody.put("error", "Missing request parameter");
-        errorBody.put("message", ex.getParameterName() + " parameter is missing");
-        errorBody.put("path", request.getRequestURI());
-        return ResponseEntity.badRequest().body(errorBody);
+    public ResponseEntity<ErrorResponseDTO> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Missing request parameter",
+                ex.getParameterName() + " parameter is missing",
+                request.getRequestURI(),
+                null
+        );
     }
 
     @ExceptionHandler(MissingPathVariableException.class)
-    public ResponseEntity<Map<String, Object>> handleMissingPathVariable(MissingPathVariableException ex, HttpServletRequest request) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
-        errorBody.put("timestamp", LocalDateTime.now());
-        errorBody.put("status", HttpStatus.BAD_REQUEST.value());
-        errorBody.put("error", "Missing path variable");
-        errorBody.put("message", ex.getVariableName() + " path variable is missing");
-        errorBody.put("path", request.getRequestURI());
-        return ResponseEntity.badRequest().body(errorBody);
+    public ResponseEntity<ErrorResponseDTO> handleMissingPathVariable(MissingPathVariableException ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Missing path variable",
+                ex.getVariableName() + " path variable is missing",
+                request.getRequestURI(),
+                null
+        );
     }
 
-
-
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
-        errorBody.put("timestamp", LocalDateTime.now());
-        errorBody.put("status", HttpStatus.BAD_REQUEST.value());
-        errorBody.put("error", "Data integrity violation");
-        errorBody.put("message", ex.getMessage());
-        errorBody.put("path", request.getRequestURI());
-        return ResponseEntity.badRequest().body(errorBody);
+    public ResponseEntity<ErrorResponseDTO> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Data integrity violation",
+                ex.getMessage(),
+                request.getRequestURI(),
+                null
+        );
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex, HttpServletRequest request) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
-        errorBody.put("timestamp", LocalDateTime.now());
-        errorBody.put("status", HttpStatus.CONFLICT.value());
-        errorBody.put("error", "Conflict");
-        errorBody.put("message", ex.getMessage());
-        errorBody.put("path", request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorBody);
+    public ResponseEntity<ErrorResponseDTO> handleConflict(ConflictException ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.CONFLICT,
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI(),
+                null
+        );
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleOtherErrors(Exception ex, HttpServletRequest request) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
-        errorBody.put("timestamp", LocalDateTime.now());
-        errorBody.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        errorBody.put("error", "Unexpected error");
-        errorBody.put("message", ex.getMessage());
-        errorBody.put("path", request.getRequestURI());
+    public ResponseEntity<ErrorResponseDTO> handleOtherErrors(Exception ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unexpected error",
+                ex.getMessage(),
+                request.getRequestURI(),
+                null
+        );
+    }
 
-        ex.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBody);
+    private List<String> getValidationExceptionErrorMessages(MethodArgumentNotValidException ex) {
+        return ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(field -> field.getField() + ": " + field.getDefaultMessage())
+                .toList();
+    }
+
+    private ResponseEntity<ErrorResponseDTO> buildErrorResponse(
+            HttpStatus status,
+            String error,
+            String message,
+            String path,
+            List<String> messages
+    ) {
+        ErrorResponseDTO.ErrorResponseDTOBuilder builder = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(error)
+                .message(message)
+                .path(path);
+
+        if (messages != null && !messages.isEmpty()) {
+            builder.messages(messages);
+        }
+
+        return ResponseEntity.status(status).body(builder.build());
     }
 }

@@ -18,12 +18,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
+
+import static com.example.userservice.exceptions.ConflictException.USER_ALREADY_EXISTS;
+import static com.example.userservice.exceptions.ResourceNotFoundException.USER_NOT_FOUND;
 import static org.hamcrest.Matchers.hasItem;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
@@ -31,12 +36,14 @@ import org.springframework.http.MediaType;
 import com.example.userservice.controllers.UserController;
 import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
-import com.example.userservice.services.UserService;
-import com.example.userservice.exceptions.ResourceNotFoundException;
 import com.example.userservice.exceptions.ConflictException;
+import com.example.userservice.exceptions.ResourceNotFoundException;
+import com.example.userservice.services.UserService;
 
+@ActiveProfiles("test")
 @WebMvcTest(UserController.class)
-public class UserControllerIntegrationTest {
+@AutoConfigureMockMvc(addFilters = false)
+class UserControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,7 +55,7 @@ public class UserControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void getUserById_shouldReturnUser() throws Exception {
+    void getUserById_shouldReturnUser() throws Exception {
         Long userId = 1L;
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
             .id(userId)
@@ -72,16 +79,16 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void getUserById_shouldReturnNotFound() throws Exception {
+    void getUserById_shouldReturnNotFound() throws Exception {
         Long userId = 1L;
 
-        when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException("User not found"));
+        when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(get("/api/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value("User not found"))
+            .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.error").value("Not found"))
             .andExpect(jsonPath("$.timestamp").exists())
@@ -89,7 +96,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void getUsersByIds_shouldReturnUsers() throws Exception {
+    void getUsersByIds_shouldReturnUsers() throws Exception {
         List<Long> userIds = Arrays.asList(1L, 2L, 3L);
         List<UserResponseDTO> userResponseDTOs = new ArrayList<>();
         userResponseDTOs.add(UserResponseDTO.builder()
@@ -130,7 +137,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void getUsersByIds_shouldReturnEmptyList() throws Exception {
+    void getUsersByIds_shouldReturnEmptyList() throws Exception {
         List<Long> userIds = Arrays.asList();
         when(userService.getUsersByIds(userIds)).thenReturn(new ArrayList<>());
         
@@ -143,7 +150,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void getUsersByIds_shouldReturnBadRequestOnAbsentIds() throws Exception {
+    void getUsersByIds_shouldReturnBadRequestOnAbsentIds() throws Exception {
         mockMvc.perform(get("/api/users/ids")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
@@ -156,7 +163,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void createUser_shouldReturnUser() throws Exception {
+    void createUser_shouldReturnUser() throws Exception {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
             .surname("Doe")
@@ -186,7 +193,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void createUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
+    void createUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("")
             .surname(" ")
@@ -213,7 +220,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void createUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
+    void createUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
             .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
@@ -237,7 +244,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void createUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
+    void createUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
             .surname("Doe")
@@ -245,14 +252,15 @@ public class UserControllerIntegrationTest {
             .email("john.doe@example.com")
             .build();
         
-        when(userService.createUser(any(UserRequestDTO.class))).thenThrow(new ConflictException("Email already exists"));
+        when(userService.createUser(any(UserRequestDTO.class)))
+            .thenThrow(new ConflictException(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())));
 
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(userRequestDTO)))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.message").value("Email already exists"))
+            .andExpect(jsonPath("$.message").value(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())))
             .andExpect(jsonPath("$.status").value(409))
             .andExpect(jsonPath("$.error").value("Conflict"))
             .andExpect(jsonPath("$.timestamp").exists())
@@ -260,7 +268,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldReturnUpdatedUser() throws Exception {
+    void updateUser_shouldReturnUpdatedUser() throws Exception {
         Long userId = 1L;
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
@@ -291,7 +299,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
+    void updateUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
         Long userId = 1L;
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("")
@@ -319,7 +327,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
+    void updateUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
         Long userId = 1L;
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
@@ -344,7 +352,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
+    void updateUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
         Long userId = 1L;
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
@@ -353,14 +361,15 @@ public class UserControllerIntegrationTest {
             .email("john.doe@example.com")
             .build();
         
-        when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenThrow(new ConflictException("Email already exists"));
+        when(userService.updateUser(eq(userId), any(UserRequestDTO.class)))
+            .thenThrow(new ConflictException(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())));
 
         mockMvc.perform(put("/api/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(userRequestDTO)))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.message").value("Email already exists"))
+            .andExpect(jsonPath("$.message").value(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())))
             .andExpect(jsonPath("$.status").value(409))
             .andExpect(jsonPath("$.error").value("Conflict"))
             .andExpect(jsonPath("$.timestamp").exists())
@@ -368,7 +377,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
+    void updateUser_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         Long userId = 1L;
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
@@ -377,7 +386,7 @@ public class UserControllerIntegrationTest {
             .email("john.doe@example.com")
             .build();
         
-        when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenThrow(new ResourceNotFoundException("User not found"));
+        when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(put("/api/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -386,14 +395,14 @@ public class UserControllerIntegrationTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.message").value("User not found"))
+            .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
             .andExpect(jsonPath("$.path").value("/api/users/" + userId));
     }   
 
     @Test
-    public void deleteUser_shouldReturnNoContent() throws Exception {
+    void deleteUser_shouldReturnNoContent() throws Exception {
         Long userId = 1L;
-        doNothing().when(userService).deleteUser(eq(userId));
+        doNothing().when(userService).deleteUser(userId);
         
         mockMvc.perform(delete("/api/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON))

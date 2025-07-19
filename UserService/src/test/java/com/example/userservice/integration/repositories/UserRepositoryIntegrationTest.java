@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -25,12 +25,13 @@ import com.example.userservice.entities.User;
 import com.example.userservice.entities.CardInfo;   
 import com.example.userservice.repositories.UserRepository;
 
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DataJpaTest
-public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
+class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
@@ -83,7 +84,7 @@ public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest 
     }
 
     @Test
-    public void saveUser_shouldSaveUser_whenUserEmailUnique() {
+    void saveUser_shouldSaveUser_whenUserEmailUnique() {
         User user = new User();
         user.setEmail("test3@example.com");
         user.setName("Anna  ");
@@ -101,7 +102,7 @@ public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest 
     }
 
     @Test
-    public void saveUser_shouldThrowException_whenEmailAlreadyExists() {
+    void saveUser_shouldThrowException_whenEmailAlreadyExists() {
         User user = new User();
         user.setEmail("test1@example.com");
         user.setName("Jane");
@@ -112,7 +113,7 @@ public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest 
     }
 
     @Test
-    public void updateUser_shouldUpdateUser_whenUserEmailUnique() {
+    void updateUser_shouldUpdateUser_whenUserEmailUnique() {
         user1.setEmail("test4@example.com");
         user1.setName("Bob");
         user1.setSurname("Michaels");
@@ -129,7 +130,7 @@ public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest 
     }
 
     @Test
-    public void updateUser_shouldThrowException_whenEmailAlreadyExists() {
+    void updateUser_shouldThrowException_whenEmailAlreadyExists() {
         user1.setEmail("test2@example.com");
         user1.setName("Bob");
         user1.setSurname("Michaels");
@@ -139,79 +140,79 @@ public class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest 
     }
 
     @Test
-    public void deleteUser_shouldDeleteUser_whenUserExists() {
+    void deleteUser_shouldDeleteUser_whenUserExists() {
         Long userId = user1.getId();
         userRepository.deleteById(userId);
         Optional<User> retrievedUser = userRepository.findById(userId);
-        assertEquals(retrievedUser.isEmpty(), true);
+        assertEquals(true, retrievedUser.isEmpty());
     }
 
     @Test
-    public void findById_shouldReturnUserWithCardInfos_whenUserExists() {
+    void findById_shouldReturnUserWithCardInfos_whenUserExists() {
         Long userId = user1.getId();
         
         Optional<User> retrievedUser = userRepository.findById(userId);
 
         assertNotNull(retrievedUser);
-        assertEquals(retrievedUser.get().getEmail(), user1.getEmail());
-        assertEquals(retrievedUser.get().getCardInfos().size(), 1);
+        assertEquals(user1.getEmail(), retrievedUser.get().getEmail());
+        assertEquals(1, retrievedUser.get().getCardInfos().size());
     }
 
     @Test
-    public void findById_shouldReturnNull_whenUserDoesNotExist() {
+    void findById_shouldReturnNull_whenUserDoesNotExist() {
         Long userId = 100L;
         Optional<User> retrievedUser = userRepository.findById(userId);
-        assertEquals(retrievedUser.isEmpty(), true);
+        assertEquals(true, retrievedUser.isEmpty());
     }
 
     @Test
-    public void findByEmail_shouldReturnUserWithCardInfos_whenUserExists() {
+    void findByEmail_shouldReturnUserWithCardInfos_whenUserExists() {
         String email = user1.getEmail();
         
         Optional<User> retrievedUser = userRepository.findByEmail(email);
 
         assertNotNull(retrievedUser);
-        assertEquals(retrievedUser.get().getEmail(), email);
-        assertEquals(retrievedUser.get().getCardInfos().size(), 1);
+        assertEquals(email, retrievedUser.get().getEmail());
+        assertEquals(1, retrievedUser.get().getCardInfos().size());
     }
 
     @Test
-    public void findByEmail_shouldReturnNull_whenUserDoesNotExist() {
+    void findByEmail_shouldReturnNull_whenUserDoesNotExist() {
         String email = "test3@example.com";
         Optional<User> retrievedUser = userRepository.findByEmail(email);
-        assertEquals(retrievedUser.isEmpty(), true);
+        assertEquals(true, retrievedUser.isEmpty());
     }
 
     @Test
-    public void findUsersByIds_shouldReturnUsersWithCardInfos_whenUsersExist() {
+    void findUsersByIds_shouldReturnUsersWithCardInfos_whenUsersExist() {
         List<Long> userIds = List.of(user1.getId(), user2.getId());
 
         List<User> retrievedUsers = userRepository.findUsersByIds(userIds);
 
         assertNotNull(retrievedUsers);
-        assertEquals(retrievedUsers.size(), 2);
+        assertEquals(2, retrievedUsers.size());
 
-        List<String> emails = retrievedUsers.stream().map(User::getEmail).collect(Collectors.toList());
+        List<String> emails = retrievedUsers.stream().map(User::getEmail).toList();
         assertTrue(emails.contains(user1.getEmail()));
         assertTrue(emails.contains(user2.getEmail()));
 
         retrievedUsers.forEach(user -> {
             assertNotNull(user.getCardInfos());
-            assertEquals(user.getCardInfos().size(), 1);
+            assertEquals(1, user.getCardInfos().size());
         });
     }
 
     @Test
-    public void existsByEmail_shouldReturnTrue_whenUserExists() {
+    void existsByEmail_shouldReturnTrue_whenUserExists() {
         String email = user1.getEmail();
         boolean exists = userRepository.existsByEmail(email);
-        assertEquals(exists, true);
+        assertEquals(true, exists);
     }
 
     @Test
-    public void existsByEmail_shouldReturnFalse_whenUserDoesNotExist() {
+    void existsByEmail_shouldReturnFalse_whenUserDoesNotExist() {
         String email = "test3@example.com";
         boolean exists = userRepository.existsByEmail(email);
-        assertEquals(exists, false);
+        assertEquals(false, exists);
     }
 }

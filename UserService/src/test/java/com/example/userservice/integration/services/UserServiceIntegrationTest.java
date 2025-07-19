@@ -31,15 +31,18 @@ import com.example.userservice.exceptions.ConflictException;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.Cache;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest
-public class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
+class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private UserService userService;
@@ -91,7 +94,7 @@ public class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void getUserById_shouldUserCacheOnSecondCall() {
+    void getUserById_shouldUserCacheOnSecondCall() {
         Long userId = user1.getId();
 
         UserResponseDTO firstCall = userService.getUserById(userId);
@@ -102,7 +105,7 @@ public class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void getUserByEmail_shouldUserCacheOnSecondCall() {
+    void getUserByEmail_shouldUserCacheOnSecondCall() {
         String userEmail = user1.getEmail();
 
         UserResponseDTO firstCall = userService.getUserByEmail(userEmail);
@@ -113,7 +116,7 @@ public class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void updateUser_shouldRollbackTransactionOnConflict() {
+    void updateUser_shouldRollbackTransactionOnConflict() {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("Jane")
             .surname("Doe")
@@ -121,16 +124,15 @@ public class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
             .email("test2@example.com")
             .build();
 
-        assertThrows(ConflictException.class, () -> {
-            userService.updateUser(user1.getId(), userRequestDTO);
-        });
+        Long userId = user1.getId();
+        assertThrows(ConflictException.class, () -> userService.updateUser(userId, userRequestDTO));
 
         User unchangedUser = userRepository.findById(user1.getId()).orElseThrow();
         assertEquals(user1.getEmail(), unchangedUser.getEmail());
     }
 
     @Test
-    public void updateUser_shouldPutUpdatedUserInCache() {
+    void updateUser_shouldPutUpdatedUserInCache() {
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("Jane")
             .surname("Doe")
@@ -149,7 +151,7 @@ public class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    public void deleteUser_shouldDeleteUserFromCache() {
+    void deleteUser_shouldDeleteUserFromCache() {
         Long userId = user1.getId();
         userService.deleteUser(userId);
 

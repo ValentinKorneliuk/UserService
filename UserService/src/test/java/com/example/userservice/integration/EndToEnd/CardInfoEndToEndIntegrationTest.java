@@ -3,13 +3,14 @@ package com.example.userservice.integration.EndToEnd;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import com.example.userservice.repositories.CardInfoRepository;
+
 import com.example.userservice.repositories.UserRepository;
 import com.example.userservice.entities.User;
 import com.example.userservice.entities.CardInfo;
 import com.example.userservice.dto.CardInfoRequestDTO;
 import com.example.userservice.dto.CardInfoResponseDTO;
 import com.example.userservice.integration.BaseContainerIntegrationTest;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpEntity;
@@ -19,20 +20,25 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.http.HttpStatus;
+
+import static com.example.userservice.exceptions.ConflictException.CARD_INFO_ALREADY_EXISTS;
+import static com.example.userservice.exceptions.ResourceNotFoundException.CARD_INFO_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Map;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 
+@ActiveProfiles("test")
 @Sql(statements = {
     "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
     "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
+class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
@@ -55,7 +61,7 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
     CardInfo cardInfo2;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         user1 = User.builder()
             .name("John")
             .surname("Doe")
@@ -66,13 +72,13 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
         cardInfo1 = CardInfo.builder()
             .number("1111222233334444")
             .holder("John Doe")
-            .expirationDate(LocalDate.of(2025, 1, 1))
+            .expirationDate(LocalDate.of(2026, 1, 1))
             .user(user1)
             .build();
         cardInfo2 = CardInfo.builder()
             .number("2222333344445555")
             .holder("Jane Doe")
-            .expirationDate(LocalDate.of(2025, 1, 1))
+            .expirationDate(LocalDate.of(2026, 1, 1))
             .user(user1)
             .build();
 
@@ -81,7 +87,7 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
     }
 
     @Test
-    public void createCardInfo_shouldReturnCreatedCardInfo() {
+    void createCardInfo_shouldReturnCreatedCardInfo() {
         String url = "/api/card-infos";
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("3333444455556666")
@@ -106,7 +112,7 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
     }
 
     @Test
-    public void createCardInfo_shouldReturnBadRequest_whenCardInfoAlreadyExists() {
+    void createCardInfo_shouldReturnBadRequest_whenCardInfoAlreadyExists() {
         String url = "/api/card-infos";
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
@@ -124,11 +130,11 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Card info with number 1111222233334444 already exists", response.getBody().get("message"));
+        assertEquals(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber()), response.getBody().get("message"));
     }
 
     @Test
-    public void getCardInfoById_shouldReturnCardInfo() {
+    void getCardInfoById_shouldReturnCardInfo() {
         String url = String.format("/api/card-infos/%d", cardInfo1.getId());
         ResponseEntity<CardInfoResponseDTO> response = testRestTemplate.exchange(
             url,
@@ -147,7 +153,7 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
     }
 
     @Test
-    public void getCardInfoById_shouldReturnNotFound_whenCardInfoDoesNotExist() {
+    void getCardInfoById_shouldReturnNotFound_whenCardInfoDoesNotExist() {
         String url = "/api/card-infos/999";
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
             url,
@@ -158,11 +164,11 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Card info not found", response.getBody().get("message"));
+        assertEquals(CARD_INFO_NOT_FOUND, response.getBody().get("message"));
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnCardInfos() {
+    void getCardInfosByIds_shouldReturnCardInfos() {
         String url = String.format("/api/card-infos/ids?ids=%d&ids=%d", cardInfo1.getId(), cardInfo2.getId());
         ResponseEntity<List<CardInfoResponseDTO>> response = testRestTemplate.exchange(
             url,
@@ -181,7 +187,7 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
     }
 
     @Test
-    public void getCardInfosByIds_shouldReturnEmptyList_whenNoCardInfosFound() {
+    void getCardInfosByIds_shouldReturnEmptyList_whenNoCardInfosFound() {
         String url = "/api/card-infos/ids?ids=999&ids=1000";
         ResponseEntity<List<CardInfoResponseDTO>> response = testRestTemplate.exchange(
             url,
@@ -196,7 +202,7 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
     }
 
     @Test
-    public void updateCardInfo_shouldReturnUpdatedCardInfo() {
+    void updateCardInfo_shouldReturnUpdatedCardInfo() {
         String url = String.format("/api/card-infos/%d", cardInfo1.getId());
             CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("3333444455556666")
@@ -220,7 +226,7 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
     }
 
     @Test
-    public void updateCardInfo_shouldReturnConflict_whenCardInfoAlreadyExists() {
+    void updateCardInfo_shouldReturnConflict_whenCardInfoAlreadyExists() {
         String url = String.format("/api/card-infos/%d", cardInfo1.getId());
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("2222333344445555")
@@ -237,11 +243,11 @@ public class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTes
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Card info with number 2222333344445555 already exists", response.getBody().get("message"));
+        assertEquals(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber()), response.getBody().get("message"));
     }
 
     @Test
-    public void deleteCardInfo_shouldReturnNoContent() {
+    void deleteCardInfo_shouldReturnNoContent() {
         String url = String.format("/api/card-infos/%d", cardInfo1.getId());
         ResponseEntity<Void> response = testRestTemplate.exchange(
             url,
