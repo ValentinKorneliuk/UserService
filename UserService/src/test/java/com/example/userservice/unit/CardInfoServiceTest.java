@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;   
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,9 +70,10 @@ class CardInfoServiceTest {
     })
     void createCardInfo_shouldReturnCardInfoResponseDTO_whenCardInfoDoesntExist(String number){
         String normalizedNumber = number.replaceAll("[\\s-]", "");
+        UUID userId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number(number)
-            .userId(1L)
+            .userId(userId)
             .build();
         
         CardInfo cardInfoEntity = CardInfo.builder()
@@ -79,11 +81,12 @@ class CardInfoServiceTest {
             .build();
 
         User userEntity = User.builder()
-            .id(1L)
+            .id(userId)
             .build();
 
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
-            .id(1L)
+            .id(cardInfoId)
             .number(normalizedNumber)
             .build();
 
@@ -108,9 +111,10 @@ class CardInfoServiceTest {
 
     @Test
     void createCardInfo_shouldThrowConflictException_whenCardInfoAlreadyExists(){
+        UUID userId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
-            .userId(1L)
+            .userId(userId)
             .build();
         
         CardInfo cardInfoEntity = CardInfo.builder()
@@ -134,9 +138,10 @@ class CardInfoServiceTest {
 
     @Test
     void createCardInfo_shouldThrowResourceNotFoundException_whenUserDoesntExist(){
+        UUID userId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
-            .userId(1L)
+            .userId(userId)
             .build();
         
         CardInfo cardInfoEntity = CardInfo.builder()
@@ -161,31 +166,32 @@ class CardInfoServiceTest {
     
     @Test
     void getCardInfoById_shouldReturnCardInfoResponseDTO_whenCardInfoExists(){
+        UUID cardInfoId = UUID.randomUUID();
         CardInfo cardInfoEntity = CardInfo.builder()
-            .id(1L)
+            .id(cardInfoId)
             .build();
 
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
-            .id(1L)
+            .id(cardInfoId)
             .number("1111222233334444")
             .build();
         
-        when(cardInfoRepository.findById(1L)).thenReturn(Optional.of(cardInfoEntity));
+        when(cardInfoRepository.findById(cardInfoId)).thenReturn(Optional.of(cardInfoEntity));
         when(cardInfoMapper.toDTO(cardInfoEntity)).thenReturn(cardInfoResponseDTO);
         
-        CardInfoResponseDTO result = cardInfoService.getCardInfoById(1L);
+        CardInfoResponseDTO result = cardInfoService.getCardInfoById(cardInfoId);
 
         assertNotNull(result);
         assertEquals(cardInfoResponseDTO.getId(), result.getId());
         assertEquals(cardInfoResponseDTO.getNumber(), result.getNumber());
 
-        verify(cardInfoRepository).findById(1L);
+        verify(cardInfoRepository).findById(cardInfoId);
         verify(cardInfoMapper).toDTO(cardInfoEntity);
     }
 
     @Test
     void getCardInfoById_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
-        Long id = 1L;
+        UUID id = UUID.randomUUID();
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.empty());
 
@@ -201,22 +207,24 @@ class CardInfoServiceTest {
 
     @Test
     void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenCardInfosExist(){
-        List<Long> ids = Arrays.asList(1L, 2L);
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        List<UUID> ids = Arrays.asList(id1, id2);
         CardInfo cardInfoEntity1 = CardInfo.builder()
-            .id(1L)
+            .id(id1)
             .build();
         CardInfo cardInfoEntity2 = CardInfo.builder()
-            .id(2L)
+            .id(id2)
             .build();
 
         List<CardInfo> cardInfoEntities = Arrays.asList(cardInfoEntity1, cardInfoEntity2);
 
         CardInfoResponseDTO cardInfoResponseDTO1 = CardInfoResponseDTO.builder()
-            .id(1L)
+            .id(id1)
             .build();
 
         CardInfoResponseDTO cardInfoResponseDTO2 = CardInfoResponseDTO.builder()
-            .id(2L)
+            .id(id2)
             .build();
 
         when(cardInfoRepository.findCardsByIds(ids)).thenReturn(cardInfoEntities);
@@ -237,15 +245,17 @@ class CardInfoServiceTest {
 
     @Test
     void getCardInfosByIds_shouldReturnCardInfoResponseDTOs_whenNotAllCardInfosExist(){
-        List<Long> ids = Arrays.asList(1L, 2L);
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        List<UUID> ids = Arrays.asList(id1, id2);
         CardInfo cardInfoEntity1 = CardInfo.builder()
-            .id(1L)
+            .id(id1)
             .build();
 
         List<CardInfo> cardInfoEntities = Arrays.asList(cardInfoEntity1);
 
         CardInfoResponseDTO cardInfoResponseDTO1 = CardInfoResponseDTO.builder()
-            .id(1L)
+            .id(id1)
             .build();
 
         when(cardInfoRepository.findCardsByIds(ids)).thenReturn(cardInfoEntities);
@@ -263,7 +273,9 @@ class CardInfoServiceTest {
 
     @Test
     void getCardInfosByIds_shouldReturnEmptyList_whenNoCardInfosExist(){
-        List<Long> ids = Arrays.asList(1L, 2L);
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        List<UUID> ids = Arrays.asList(id1, id2);
 
         when(cardInfoRepository.findCardsByIds(ids)).thenReturn(Collections.emptyList());
 
@@ -278,12 +290,13 @@ class CardInfoServiceTest {
 
     @Test
     void updateCardInfo_shouldReturnUpdatedCardInfoResponseDTO_whenCardInfoExists(){
-        Long id = 1L;
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("5555666677778888")
             .holder("NEW HOLDER")
             .expirationDate(LocalDate.of(2026, 12, 31))
-            .userId(1L)
+            .userId(userId)
             .build();
         
         CardInfo cardInfoEntity = CardInfo.builder()
@@ -329,7 +342,7 @@ class CardInfoServiceTest {
 
     @Test
     void updateCardInfo_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
-        Long id = 1L;
+        UUID id = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .build();
 
@@ -350,7 +363,7 @@ class CardInfoServiceTest {
 
     @Test
     void updateCardInfo_shouldThrowConflictException_whenCardInfoNumberAlreadyExists(){
-        Long id = 1L;
+        UUID id = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("5555666677778888")
             .userId(id)
@@ -379,8 +392,8 @@ class CardInfoServiceTest {
 
     @Test
     void deleteCardInfo_shouldDeleteCardInfo_whenCardInfoExists(){
-        Long id = 1L;
-        Long userId = 1L;
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
 
         User userEntity = User.builder()
             .id(userId)
@@ -408,7 +421,7 @@ class CardInfoServiceTest {
 
     @Test
     void deleteCardInfo_shouldThrowResourceNotFoundException_whenCardInfoDoesntExist(){
-        Long id = 1L;
+        UUID id = UUID.randomUUID();
 
         when(cardInfoRepository.findById(id)).thenReturn(Optional.empty());
 

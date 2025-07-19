@@ -144,7 +144,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getUserById_shouldReturnUser() {
-        String url = String.format("/api/users/%d", user1.getId());
+        String url = String.format("/api/users/%s", user1.getId().toString());
 
         ResponseEntity<UserResponseDTO> response = testRestTemplate.exchange(
             url,
@@ -161,7 +161,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getUserById_shouldReturnNotFound_whenUserDoesNotExist() {
-        String url = "/api/users/999";
+        String url = "/api/users/00000000-0000-0000-0000-000000000999";
 
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
             url,
@@ -177,7 +177,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getUsersByIds_shouldReturnUsers() {
-        String url = String.format("/api/users/ids?ids=%d&ids=%d", user1.getId(), user2.getId());
+        String url = String.format("/api/users/ids?ids=%s&ids=%s", user1.getId().toString(), user2.getId().toString());
         ResponseEntity<List<UserResponseDTO>> response = testRestTemplate.exchange(
             url,
             HttpMethod.GET,
@@ -196,7 +196,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getUsersByIds_shouldReturnEmptyList_whenNoUsersFound() {
-        String url = "/api/users/ids?ids=999&ids=1000";
+        String url = "/api/users/ids?ids=00000000-0000-0000-0000-000000000999&ids=00000000-0000-0000-0000-000000001000";
         ResponseEntity<List<UserResponseDTO>> response = testRestTemplate.exchange(
             url,
             HttpMethod.GET,
@@ -211,7 +211,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void updateUser_shouldReturnUpdatedUser() {
-        String url = String.format("/api/users/%d", user1.getId());
+        String url = String.format("/api/users/%s", user1.getId().toString());
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("Adam")
             .surname("Smith")
@@ -235,7 +235,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void updateUser_shouldReturnConflict_whenEmailAlreadyExists() {
-        String url = String.format("/api/users/%d", user1.getId());
+        String url = String.format("/api/users/%s", user1.getId().toString());
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("Adam")
             .surname("Smith")
@@ -259,7 +259,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void deleteUser_shouldReturnNoContent() {
-        String url = String.format("/api/users/%d", user1.getId());
+        String url = String.format("/api/users/%s", user1.getId().toString());
         ResponseEntity<Void> response = testRestTemplate.exchange(
             url,
             HttpMethod.DELETE,

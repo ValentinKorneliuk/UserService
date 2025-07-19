@@ -8,6 +8,7 @@ import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.mappers.UserMapper;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import com.example.userservice.exceptions.ConflictException;
 import com.example.userservice.exceptions.ResourceNotFoundException;
@@ -42,13 +43,13 @@ public class UserService {
     }
 
     @Cacheable(key = "#id")
-    public UserResponseDTO getUserById(Long id) {
+    public UserResponseDTO getUserById(UUID id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
         return userMapper.toDTO(user);
     }
 
-    public List<UserResponseDTO> getUsersByIds(List<Long> ids) {
+    public List<UserResponseDTO> getUsersByIds(List<UUID> ids) {
         List<User> users = userRepository.findUsersByIds(ids);
         return users.stream()
             .map(userMapper::toDTO)
@@ -64,7 +65,7 @@ public class UserService {
 
     @Transactional
     @CachePut(key = "#id")
-    public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) {
+    public UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
         if (!user.getEmail().equals(userRequestDTO.getEmail()) && userRepository.existsByEmail(userRequestDTO.getEmail())) {
@@ -79,7 +80,7 @@ public class UserService {
 
     @Transactional
     @CacheEvict(key = "#id")
-    public void deleteUser(Long id) {
+    public void deleteUser(UUID id) {
         userRepository.deleteById(id);
     }
 }

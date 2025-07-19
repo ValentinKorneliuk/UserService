@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;  
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,7 +56,7 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void getCardInfoById_shouldReturnCardInfo() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
             .id(cardInfoId)
             .number("1111222233334444")
@@ -69,7 +70,7 @@ class CardInfoControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(cardInfoId))
+            .andExpect(jsonPath("$.id").value(cardInfoId.toString()))
             .andExpect(jsonPath("$.number").value("1111222233334444"))
             .andExpect(jsonPath("$.holder").value("John Doe"))
             .andExpect(jsonPath("$.expirationDate").value("2027-01-01"));
@@ -77,7 +78,7 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void getCardInfoById_shouldReturnNotFound() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
 
         when(cardInfoService.getCardInfoById(cardInfoId)).thenThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND));
         
@@ -94,22 +95,25 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void getCardInfosByIds_shouldReturnCardInfos() throws Exception {
-        List<Long> cardInfoIds = Arrays.asList(1L, 2L, 3L);
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        UUID id3 = UUID.randomUUID();
+        List<UUID> cardInfoIds = Arrays.asList(id1, id2, id3);
         List<CardInfoResponseDTO> cardInfoResponseDTOs = new ArrayList<>();
         cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
-            .id(1L)
+            .id(id1)
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
             .build());
         cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
-            .id(2L)
+            .id(id2)
             .number("2222333344445555")
             .holder("Jane Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
             .build());
         cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
-            .id(3L)
+            .id(id3)
             .number("3333444455556666")
             .holder("Jim Beam")
             .expirationDate(LocalDate.of(2027, 1, 1))
@@ -123,7 +127,7 @@ class CardInfoControllerIntegrationTest {
             .param("ids", cardInfoIds.stream().map(String::valueOf).collect(Collectors.joining(","))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.size()").value(cardInfoResponseDTOs.size()))
-            .andExpect(jsonPath("$[0].id").value(cardInfoResponseDTOs.get(0).getId()))
+            .andExpect(jsonPath("$[0].id").value(cardInfoResponseDTOs.get(0).getId().toString()))
             .andExpect(jsonPath("$[0].number").value(cardInfoResponseDTOs.get(0).getNumber()))
             .andExpect(jsonPath("$[0].holder").value(cardInfoResponseDTOs.get(0).getHolder()))
             .andExpect(jsonPath("$[0].expirationDate").value(cardInfoResponseDTOs.get(0).getExpirationDate().toString()));
@@ -131,7 +135,7 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void getCardInfosByIds_shouldReturnEmptyList() throws Exception {
-        List<Long> cardInfoIds = Arrays.asList();
+        List<UUID> cardInfoIds = Arrays.asList();
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenReturn(new ArrayList<>());
         
         mockMvc.perform(get("/api/card-infos/ids")
@@ -144,7 +148,7 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void getCardInfosByIds_shouldReturnBadRequestOnAbsentIds() throws Exception {
-        List<Long> cardInfoIds = Arrays.asList();
+        List<UUID> cardInfoIds = Arrays.asList();
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenThrow(new IllegalArgumentException("ids parameter is missing"));
         
         mockMvc.perform(get("/api/card-infos/ids")
@@ -160,14 +164,16 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void createCardInfo_shouldReturnCardInfo() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(1L)
+            .userId(userId)
             .build();
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
-            .id(1L)
+            .id(cardInfoId)
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
@@ -180,7 +186,7 @@ class CardInfoControllerIntegrationTest {
             .accept(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId()))
+            .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId().toString()))
             .andExpect(jsonPath("$.number").value(cardInfoResponseDTO.getNumber()))
             .andExpect(jsonPath("$.holder").value(cardInfoResponseDTO.getHolder()))
             .andExpect(jsonPath("$.expirationDate").value(cardInfoResponseDTO.getExpirationDate().toString()))
@@ -217,7 +223,7 @@ class CardInfoControllerIntegrationTest {
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2024, 1, 1))
-            .userId(1L)
+            .userId(UUID.randomUUID())
             .build();
 
         mockMvc.perform(post("/api/card-infos")
@@ -237,7 +243,7 @@ class CardInfoControllerIntegrationTest {
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(1L)
+            .userId(UUID.randomUUID())
             .build();
 
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class)))
@@ -260,7 +266,7 @@ class CardInfoControllerIntegrationTest {
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(1L)
+            .userId(UUID.randomUUID())
             .build();
 
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class)))
@@ -279,12 +285,13 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void updateCardInfo_shouldReturnCardInfo() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(1L)
+            .userId(userId)
             .build();
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
             .id(cardInfoId)
@@ -300,7 +307,7 @@ class CardInfoControllerIntegrationTest {
             .accept(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId()))
+            .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId().toString()))
             .andExpect(jsonPath("$.number").value(cardInfoResponseDTO.getNumber()))
             .andExpect(jsonPath("$.holder").value(cardInfoResponseDTO.getHolder()))
             .andExpect(jsonPath("$.expirationDate").value(cardInfoResponseDTO.getExpirationDate().toString()));
@@ -308,7 +315,7 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void updateCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("")
             .holder(" ")
@@ -333,12 +340,12 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void updateCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2024, 1, 1))
-            .userId(1L)
+            .userId(UUID.randomUUID())
             .build();
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
@@ -354,12 +361,12 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void updateCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(1L)
+            .userId(UUID.randomUUID())
             .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
@@ -378,12 +385,12 @@ class CardInfoControllerIntegrationTest {
     
     @Test
     void updateCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(1L)
+            .userId(UUID.randomUUID())
             .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
@@ -402,12 +409,12 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void updateCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("1111222233334444")
             .holder("John Doe")
             .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(1L)
+            .userId(UUID.randomUUID())
             .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
@@ -426,7 +433,7 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void deleteCardInfo_shouldReturnNoContent() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         doNothing().when(cardInfoService).deleteCardInfo(cardInfoId);
         
         mockMvc.perform(delete("/api/card-infos/{id}", cardInfoId)
@@ -437,7 +444,7 @@ class CardInfoControllerIntegrationTest {
 
     @Test
     void deleteCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
-        Long cardInfoId = 1L;
+        UUID cardInfoId = UUID.randomUUID();
         doThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND))
             .when(cardInfoService).deleteCardInfo(cardInfoId);
 

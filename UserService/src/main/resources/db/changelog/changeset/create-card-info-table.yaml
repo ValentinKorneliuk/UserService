@@ -8,19 +8,17 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: BIGINT
-                  autoIncrement: true
+                  type: UUID
                   constraints:
                     primaryKey: true
-                    nullable: false
               - column:
                   name: user_id
-                  type: BIGINT
+                  type: UUID
                   constraints:
                     nullable: false
               - column:
                   name: number
-                  type: VARCHAR(20)
+                  type: VARCHAR(16)
                   constraints:
                     nullable: false
                     unique: true

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
@@ -56,7 +57,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void getUserById_shouldReturnUser() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
             .id(userId)
             .name("John")
@@ -71,7 +72,7 @@ class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(userId))
+            .andExpect(jsonPath("$.id").value(userId.toString()))
             .andExpect(jsonPath("$.name").value("John"))
             .andExpect(jsonPath("$.surname").value("Doe"))
             .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
@@ -80,7 +81,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void getUserById_shouldReturnNotFound() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
@@ -92,29 +93,32 @@ class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.error").value("Not found"))
             .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users/1"));
+            .andExpect(jsonPath("$.path").value("/api/users/" + userId));
     }
 
     @Test
     void getUsersByIds_shouldReturnUsers() throws Exception {
-        List<Long> userIds = Arrays.asList(1L, 2L, 3L);
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        UUID id3 = UUID.randomUUID();
+        List<UUID> userIds = Arrays.asList(id1, id2, id3);
         List<UserResponseDTO> userResponseDTOs = new ArrayList<>();
         userResponseDTOs.add(UserResponseDTO.builder()
-            .id(1L)
+            .id(id1)
             .name("John")
             .surname("Doe")
             .birthDate(LocalDate.of(1990, 1, 1))
             .email("john.doe@example.com")
             .build());
         userResponseDTOs.add(UserResponseDTO.builder()
-            .id(2L)
+            .id(id2)
             .name("Jane")
             .surname("Smith")
             .birthDate(LocalDate.of(1991, 2, 2))
             .email("jane.smith@example.com")
             .build());
         userResponseDTOs.add(UserResponseDTO.builder()
-            .id(3L)
+            .id(id3)
             .name("Jim")
             .surname("Beam")
             .birthDate(LocalDate.of(1992, 3, 3))
@@ -126,10 +130,10 @@ class UserControllerIntegrationTest {
         mockMvc.perform(get("/api/users/ids")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .param("ids", userIds.stream().map(String::valueOf).collect(Collectors.joining(","))))
+                .param("ids", userIds.stream().map(UUID::toString).collect(Collectors.joining(","))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.size()").value(userResponseDTOs.size()))
-            .andExpect(jsonPath("$[0].id").value(userResponseDTOs.get(0).getId()))
+            .andExpect(jsonPath("$[0].id").value(userResponseDTOs.get(0).getId().toString()))
             .andExpect(jsonPath("$[0].name").value(userResponseDTOs.get(0).getName()))
             .andExpect(jsonPath("$[0].surname").value(userResponseDTOs.get(0).getSurname()))
             .andExpect(jsonPath("$[0].birthDate").value(userResponseDTOs.get(0).getBirthDate().toString()))
@@ -138,13 +142,13 @@ class UserControllerIntegrationTest {
 
     @Test
     void getUsersByIds_shouldReturnEmptyList() throws Exception {
-        List<Long> userIds = Arrays.asList();
+        List<UUID> userIds = Arrays.asList();
         when(userService.getUsersByIds(userIds)).thenReturn(new ArrayList<>());
         
         mockMvc.perform(get("/api/users/ids")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .param("ids", userIds.stream().map(String::valueOf).collect(Collectors.joining(","))))
+                .param("ids", userIds.stream().map(UUID::toString).collect(Collectors.joining(","))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.size()").value(0));
     }
@@ -170,8 +174,9 @@ class UserControllerIntegrationTest {
             .birthDate(LocalDate.of(1990, 1, 1))
             .email("john.doe@example.com")
             .build();
+        UUID userId = UUID.randomUUID();
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(1L)
+            .id(userId)
             .name("John")
             .surname("Doe")
             .birthDate(LocalDate.of(1990, 1, 1))
@@ -185,7 +190,7 @@ class UserControllerIntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(userRequestDTO)))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(1L))
+            .andExpect(jsonPath("$.id").value(userId.toString()))
             .andExpect(jsonPath("$.name").value("John"))
             .andExpect(jsonPath("$.surname").value("Doe"))
             .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
@@ -269,7 +274,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void updateUser_shouldReturnUpdatedUser() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
             .surname("Doe")
@@ -291,7 +296,7 @@ class UserControllerIntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(userRequestDTO)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(userId))
+            .andExpect(jsonPath("$.id").value(userId.toString()))
             .andExpect(jsonPath("$.name").value("John"))
             .andExpect(jsonPath("$.surname").value("Doe"))
             .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
@@ -300,7 +305,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void updateUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("")
             .surname(" ")
@@ -328,7 +333,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void updateUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
             .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
@@ -353,7 +358,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void updateUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
             .surname("Doe")
@@ -378,7 +383,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void updateUser_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .name("John")
             .surname("Doe")
@@ -401,7 +406,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void deleteUser_shouldReturnNoContent() throws Exception {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         doNothing().when(userService).deleteUser(userId);
         
         mockMvc.perform(delete("/api/users/{id}", userId)

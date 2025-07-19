@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -110,7 +111,7 @@ class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
         cardInfo.setExpirationDate(LocalDate.of(2026, 1, 1));
         cardInfo.setUser(user2);
 
-        assertThrows(DataIntegrityViolationException.class, () -> cardInfoRepository.save(cardInfo));
+        assertThrows(DataIntegrityViolationException.class, () -> cardInfoRepository.saveAndFlush(cardInfo));
     }
 
     @Test
@@ -139,7 +140,7 @@ class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void deleteCardInfo_shouldDeleteCardInfo_whenCardInfosExist() {
-        Long cardInfoId = cardInfo1.getId();
+        UUID cardInfoId = cardInfo1.getId();
         cardInfoRepository.deleteById(cardInfoId);
         Optional<CardInfo> retrievedCardInfo = cardInfoRepository.findById(cardInfoId);
         assertEquals(true, retrievedCardInfo.isEmpty());
@@ -147,7 +148,7 @@ class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void findCardsByIds_shouldReturnCardInfos_whenCardInfosExist() {
-        Long cardInfoId = cardInfo1.getId();
+        UUID cardInfoId = cardInfo1.getId();
         CardInfo retrievedCardInfo = cardInfoRepository.findById(cardInfoId).orElseThrow();
         assertEquals(cardInfo1.getId(), retrievedCardInfo.getId());
         assertEquals(cardInfo1.getNumber(), retrievedCardInfo.getNumber());

@@ -1,6 +1,7 @@
 package com.example.userservice.controllers;
 
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.validation.Valid;
 
@@ -31,12 +32,12 @@ public class CardInfoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CardInfoResponseDTO> getCardInfoById(@PathVariable Long id) {
+    public ResponseEntity<CardInfoResponseDTO> getCardInfoById(@PathVariable UUID id) {
         return ResponseEntity.ok(cardInfoService.getCardInfoById(id));
     }
 
     @GetMapping("/ids")
-    public ResponseEntity<List<CardInfoResponseDTO>> getCardInfosByIds(@RequestParam List<Long> ids) {
+    public ResponseEntity<List<CardInfoResponseDTO>> getCardInfosByIds(@RequestParam List<UUID> ids) {
         return ResponseEntity.ok(cardInfoService.getCardInfosByIds(ids));
     }
 
@@ -46,12 +47,12 @@ public class CardInfoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CardInfoResponseDTO> updateCardInfo(@PathVariable Long id, @Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
+    public ResponseEntity<CardInfoResponseDTO> updateCardInfo(@PathVariable UUID id, @Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
         return ResponseEntity.ok(cardInfoService.updateCardInfo(id, cardInfoRequestDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCardInfo(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCardInfo(@PathVariable UUID id) {
         cardInfoService.deleteCardInfo(id);
         return ResponseEntity.noContent().build();
     }

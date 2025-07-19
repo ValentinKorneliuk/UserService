@@ -135,7 +135,7 @@ class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getCardInfoById_shouldReturnCardInfo() {
-        String url = String.format("/api/card-infos/%d", cardInfo1.getId());
+        String url = String.format("/api/card-infos/%s", cardInfo1.getId().toString());
         ResponseEntity<CardInfoResponseDTO> response = testRestTemplate.exchange(
             url,
             HttpMethod.GET,
@@ -154,7 +154,7 @@ class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getCardInfoById_shouldReturnNotFound_whenCardInfoDoesNotExist() {
-        String url = "/api/card-infos/999";
+        String url = "/api/card-infos/00000000-0000-0000-0000-000000000999";
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
             url,
             HttpMethod.GET,
@@ -169,7 +169,7 @@ class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getCardInfosByIds_shouldReturnCardInfos() {
-        String url = String.format("/api/card-infos/ids?ids=%d&ids=%d", cardInfo1.getId(), cardInfo2.getId());
+        String url = String.format("/api/card-infos/ids?ids=%s&ids=%s", cardInfo1.getId().toString(), cardInfo2.getId().toString());
         ResponseEntity<List<CardInfoResponseDTO>> response = testRestTemplate.exchange(
             url,
             HttpMethod.GET,
@@ -188,7 +188,7 @@ class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void getCardInfosByIds_shouldReturnEmptyList_whenNoCardInfosFound() {
-        String url = "/api/card-infos/ids?ids=999&ids=1000";
+        String url = "/api/card-infos/ids?ids=00000000-0000-0000-0000-000000000999&ids=00000000-0000-0000-0000-000000001000";
         ResponseEntity<List<CardInfoResponseDTO>> response = testRestTemplate.exchange(
             url,
             HttpMethod.GET,
@@ -203,7 +203,7 @@ class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void updateCardInfo_shouldReturnUpdatedCardInfo() {
-        String url = String.format("/api/card-infos/%d", cardInfo1.getId());
+        String url = String.format("/api/card-infos/%s", cardInfo1.getId().toString());
             CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("3333444455556666")
             .holder("JOHN DOE")
@@ -227,7 +227,7 @@ class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void updateCardInfo_shouldReturnConflict_whenCardInfoAlreadyExists() {
-        String url = String.format("/api/card-infos/%d", cardInfo1.getId());
+        String url = String.format("/api/card-infos/%s", cardInfo1.getId().toString());
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
             .number("2222333344445555")
             .holder("JOHN DOE")
@@ -248,7 +248,7 @@ class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void deleteCardInfo_shouldReturnNoContent() {
-        String url = String.format("/api/card-infos/%d", cardInfo1.getId());
+        String url = String.format("/api/card-infos/%s", cardInfo1.getId().toString());
         ResponseEntity<Void> response = testRestTemplate.exchange(
             url,
             HttpMethod.DELETE,

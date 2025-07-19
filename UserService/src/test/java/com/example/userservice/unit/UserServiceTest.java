@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.example.userservice.dto.UserRequestDTO;  
 import com.example.userservice.dto.UserResponseDTO;
@@ -57,13 +58,14 @@ class UserServiceTest {
             .email(userRequestDTO.getEmail())
             .build();
 
+        UUID userId = UUID.randomUUID();
         User savedUserEntity = User.builder()
-            .id(1L)
+            .id(userId)
             .email(userRequestDTO.getEmail())
             .build();
 
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(1L)
+            .id(userId)
             .email(userRequestDTO.getEmail())
             .build();
 
@@ -75,7 +77,7 @@ class UserServiceTest {
         UserResponseDTO result = userService.createUser(userRequestDTO);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
+        assertEquals(userId, result.getId());
         assertEquals(userRequestDTO.getEmail(), result.getEmail());
 
         verify(userRepository).existsByEmail(userRequestDTO.getEmail());
@@ -105,7 +107,7 @@ class UserServiceTest {
 
     @Test
     void getUserById_shouldReturnUserDTO_whenUserExists(){
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         User userEntity = User.builder()
             .id(userId)
             .build();
@@ -128,7 +130,7 @@ class UserServiceTest {
 
     @Test
     void getUserById_shouldThrowResourceNotFoundException_whenUserDoesntExists(){
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -144,22 +146,24 @@ class UserServiceTest {
 
     @Test
     void getUsersByIds_shouldReturnUserDTOs_whenUsersExist(){
-        List<Long> userIds = Arrays.asList(1L, 2L);
+        UUID userId1 = UUID.randomUUID();
+        UUID userId2 = UUID.randomUUID();
+        List<UUID> userIds = Arrays.asList(userId1, userId2);
         User userEntity1 = User.builder()
-            .id(1L)
+            .id(userId1)
             .build();
         User userEntity2 = User.builder()
-            .id(2L)
+            .id(userId2)
             .build();
 
         List<User> userEntities = Arrays.asList(userEntity1, userEntity2);
 
         UserResponseDTO userResponseDTO1 = UserResponseDTO.builder()
-            .id(1L)
+            .id(userId1)
             .build();
 
         UserResponseDTO userResponseDTO2 = UserResponseDTO.builder()
-            .id(2L)
+            .id(userId2)
             .build();
 
         when(userRepository.findUsersByIds(userIds)).thenReturn(userEntities);
@@ -180,15 +184,17 @@ class UserServiceTest {
 
     @Test
     void getUsersByIds_shouldReturnUserDTOs_whenNotAllUsersExist(){
-        List<Long> userIds = Arrays.asList(1L, 2L);
+        UUID userId1 = UUID.randomUUID();
+        UUID userId2 = UUID.randomUUID();
+        List<UUID> userIds = Arrays.asList(userId1, userId2);
         User userEntity1 = User.builder()
-            .id(1L)
+            .id(userId1)
             .build();
 
         List<User> userEntities = Arrays.asList(userEntity1);
 
         UserResponseDTO userResponseDTO1 = UserResponseDTO.builder()
-            .id(1L)
+            .id(userId1)
             .build();
 
         when(userRepository.findUsersByIds(userIds)).thenReturn(userEntities);
@@ -206,7 +212,9 @@ class UserServiceTest {
 
     @Test
     void getUsersByIds_shouldReturnEmptyList_whenNoUsersExist(){
-        List<Long> userIds = Arrays.asList(1L, 2L);
+        UUID userId1 = UUID.randomUUID();
+        UUID userId2 = UUID.randomUUID();
+        List<UUID> userIds = Arrays.asList(userId1, userId2);
         when(userRepository.findUsersByIds(userIds)).thenReturn(Collections.emptyList());
 
         List<UserResponseDTO> result = userService.getUsersByIds(userIds);
@@ -221,12 +229,14 @@ class UserServiceTest {
     @Test
     void getUserByEmail_shouldReturnUserDTO_whenUserExists(){
         String email = "test@test.com";
+        UUID userId = UUID.randomUUID();
         User userEntity = User.builder()
+            .id(userId)
             .email(email)
             .build();
 
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(1L)
+            .id(userId)
             .email(email)
             .build();
 
@@ -236,7 +246,7 @@ class UserServiceTest {
         UserResponseDTO result = userService.getUserByEmail(email);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
+        assertEquals(userId, result.getId());
         assertEquals(email, result.getEmail());
 
         verify(userRepository).findByEmail(email);
@@ -261,7 +271,7 @@ class UserServiceTest {
 
     @Test
     void updateUser_shouldReturnUpdatedUserDTO_whenUserExists(){
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .email("new@test.com")
             .name("newName")
@@ -317,7 +327,7 @@ class UserServiceTest {
 
     @Test
     void updateUser_shouldThrowResourceNotFoundException_whenUserDoesntExists(){
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .email("new@test.com")
             .build();
@@ -339,7 +349,7 @@ class UserServiceTest {
 
     @Test
     void updateUser_shouldThrowConflictException_whenEmailAlreadyExists(){
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserRequestDTO userRequestDTO = UserRequestDTO.builder()
             .email("new@test.com")
             .build();
@@ -367,7 +377,7 @@ class UserServiceTest {
 
     @Test
     void deleteUser_shouldDeleteUser(){
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         doNothing().when(userRepository).deleteById(userId);
 
