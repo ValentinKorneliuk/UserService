@@ -18,16 +18,16 @@ import com.example.userservice.filters.JwtAuthFilter;
 public class SecurityConfig {
 
     @Bean
-    public JwtDecoder jwtDecoder(AuthProperties props){
+    public JwtDecoder jwtDecoder(AuthProperties props) {
         return NimbusJwtDecoder.withJwkSetUri(props.getPublicKeyUrl()).build();
     }
-    
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                    .anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(AbstractHttpConfigurer::disable)
