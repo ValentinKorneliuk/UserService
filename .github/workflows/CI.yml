@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PACKAGE_TOKEN: ${{ secrets.env.PACKAGE_TOKEN }}
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
 
     steps:
       - name: Checkout repository
