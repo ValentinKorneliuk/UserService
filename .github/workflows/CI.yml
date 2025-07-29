@@ -11,6 +11,9 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    env:
+      PACKAGE_TOKEN: ${{ secrets.env.PACKAGE_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -29,6 +32,11 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+          
+      - name: Set up Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cp .github/maven-settings.xml ~/.m2/settings.xml
 
       - name: Build with Maven and run tests
         working-directory: UserService
