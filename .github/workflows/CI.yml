@@ -47,6 +47,7 @@ jobs:
         with:
           name: app
           path: UserService/target/*.jar
+          retention-days: 1
 
   sonar-analysis:
     needs: build-and-test
