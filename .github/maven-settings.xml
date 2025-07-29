@@ -1,9 +1,0 @@
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
-  <servers>
-    <server>
-      <id>github</id>
-      <username>ValentinKorneliuk</username>
-      <password>${env.PACKAGE_TOKEN}</password>
-    </server>
-  </servers>
-</settings>
