@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PACKAGE_TOKEN: ${{ secrets.env.PACKAGE_TOKEN }}
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -47,6 +47,7 @@ jobs:
         with:
           name: app
           path: UserService/target/*.jar
+          retention-days: 1
 
   sonar-analysis:
     needs: build-and-test
