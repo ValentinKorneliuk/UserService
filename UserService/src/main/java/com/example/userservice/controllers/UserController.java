@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ public class UserController {
 
     private final UserService userService;
 
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -37,21 +39,25 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping("/ids")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponseDTO>> getUsersByIds(@RequestParam List<UUID> ids) {
         return ResponseEntity.ok(userService.getUsersByIds(ids));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
         return ResponseEntity.ok(userService.updateUser(id, userRequestDTO));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
