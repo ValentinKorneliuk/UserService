@@ -11,4 +11,4 @@ spring:
       password: ${REDIS_PASSWORD}
 
 auth:
-  public-key-url: http://auth-service:8082/public-key
+  public-key-url: http://auth-service:8082/.well-known/jwks.json

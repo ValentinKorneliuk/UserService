@@ -1,11 +1,15 @@
 package com.example.userservice.unit;
 
+import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.UpdateUserRequestDTO;
+import dev.kornliuk.jwtauthstarter.security.UserDetailsProvider;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,7 +26,6 @@ import java.util.Optional;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import com.example.userservice.dto.UserRequestDTO;  
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.entities.User;
 import com.example.userservice.services.UserService;
@@ -38,84 +41,88 @@ import static com.example.userservice.exceptions.ResourceNotFoundException.USER_
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
-    
+
     @Mock
     UserRepository userRepository;
 
     @Mock
     UserMapper userMapper;
 
+    @Mock
+    UserDetailsProvider userDetailsProvider;
+
     @InjectMocks
     UserService userService;
 
     @Test
     void createUser_shouldSaveAndReturnUserDTO_whenEmailDoesNotExist() {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .email("test@test.com")
-            .build();
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .email("test@test.com")
+                .build();
 
         User userEntity = User.builder()
-            .email(userRequestDTO.getEmail())
-            .build();
+                .email(createUserRequestDTO.getEmail())
+                .build();
 
         UUID userId = UUID.randomUUID();
         User savedUserEntity = User.builder()
-            .id(userId)
-            .email(userRequestDTO.getEmail())
-            .build();
+                .id(userId)
+                .email(createUserRequestDTO.getEmail())
+                .build();
 
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(userId)
-            .email(userRequestDTO.getEmail())
-            .build();
+                .id(userId)
+                .email(createUserRequestDTO.getEmail())
+                .build();
 
-        when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(false);
-        when(userMapper.toEntity(userRequestDTO)).thenReturn(userEntity);
+        when(userRepository.existsByEmail(createUserRequestDTO.getEmail())).thenReturn(false);
+        when(userMapper.toEntity(createUserRequestDTO)).thenReturn(userEntity);
         when(userRepository.save(userEntity)).thenReturn(savedUserEntity);
         when(userMapper.toDTO(savedUserEntity)).thenReturn(userResponseDTO);
 
-        UserResponseDTO result = userService.createUser(userRequestDTO);
+        UserResponseDTO result = userService.createUser(createUserRequestDTO);
 
         assertNotNull(result);
         assertEquals(userId, result.getId());
-        assertEquals(userRequestDTO.getEmail(), result.getEmail());
+        assertEquals(createUserRequestDTO.getEmail(), result.getEmail());
 
-        verify(userRepository).existsByEmail(userRequestDTO.getEmail());
+        verify(userRepository).existsByEmail(createUserRequestDTO.getEmail());
         verify(userRepository).save(userEntity);
-        verify(userMapper).toEntity(userRequestDTO);
+        verify(userMapper).toEntity(createUserRequestDTO);
         verify(userMapper).toDTO(savedUserEntity);
     }
 
     @Test
     void createUser_shouldThrowConflictException_whenEmailExists() {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .email("test@test.com")
-            .build();
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .email("test@test.com")
+                .build();
 
-        when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(true);
+        when(userRepository.existsByEmail(createUserRequestDTO.getEmail())).thenReturn(true);
 
         ConflictException exception = assertThrows(ConflictException.class, () -> {
-            userService.createUser(userRequestDTO);
+            userService.createUser(createUserRequestDTO);
         });
 
-        assertEquals(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail()), exception.getMessage());
-        
+        assertEquals(String.format(USER_ALREADY_EXISTS, createUserRequestDTO.getEmail()), exception.getMessage());
+
         verify(userRepository, never()).save(any());
-        verify(userMapper, never()).toEntity(any());
+        verify(userMapper, never()).toEntity(any(CreateUserRequestDto.class));
         verify(userMapper, never()).toDTO(any());
     }
 
     @Test
-    void getUserById_shouldReturnUserDTO_whenUserExists(){
+    void getUserById_shouldReturnUserDTO_whenUserExists() {
         UUID userId = UUID.randomUUID();
         User userEntity = User.builder()
-            .id(userId)
-            .build();
+                .id(userId)
+                .build();
 
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(userId)
-            .build();
+                .id(userId)
+                .build();
 
+        when(userDetailsProvider.getUserId()).thenReturn(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userMapper.toDTO(userEntity)).thenReturn(userResponseDTO);
 
@@ -129,9 +136,10 @@ class UserServiceTest {
     }
 
     @Test
-    void getUserById_shouldThrowResourceNotFoundException_whenUserDoesntExists(){
+    void getUserById_shouldThrowResourceNotFoundException_whenUserDoesntExists() {
         UUID userId = UUID.randomUUID();
-        
+
+        when(userDetailsProvider.getUserId()).thenReturn(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -145,26 +153,26 @@ class UserServiceTest {
     }
 
     @Test
-    void getUsersByIds_shouldReturnUserDTOs_whenUsersExist(){
+    void getUsersByIds_shouldReturnUserDTOs_whenUsersExist() {
         UUID userId1 = UUID.randomUUID();
         UUID userId2 = UUID.randomUUID();
         List<UUID> userIds = Arrays.asList(userId1, userId2);
         User userEntity1 = User.builder()
-            .id(userId1)
-            .build();
+                .id(userId1)
+                .build();
         User userEntity2 = User.builder()
-            .id(userId2)
-            .build();
+                .id(userId2)
+                .build();
 
         List<User> userEntities = Arrays.asList(userEntity1, userEntity2);
 
         UserResponseDTO userResponseDTO1 = UserResponseDTO.builder()
-            .id(userId1)
-            .build();
+                .id(userId1)
+                .build();
 
         UserResponseDTO userResponseDTO2 = UserResponseDTO.builder()
-            .id(userId2)
-            .build();
+                .id(userId2)
+                .build();
 
         when(userRepository.findUsersByIds(userIds)).thenReturn(userEntities);
         when(userMapper.toDTO(userEntity1)).thenReturn(userResponseDTO1);
@@ -183,19 +191,19 @@ class UserServiceTest {
     }
 
     @Test
-    void getUsersByIds_shouldReturnUserDTOs_whenNotAllUsersExist(){
+    void getUsersByIds_shouldReturnUserDTOs_whenNotAllUsersExist() {
         UUID userId1 = UUID.randomUUID();
         UUID userId2 = UUID.randomUUID();
         List<UUID> userIds = Arrays.asList(userId1, userId2);
         User userEntity1 = User.builder()
-            .id(userId1)
-            .build();
+                .id(userId1)
+                .build();
 
         List<User> userEntities = Arrays.asList(userEntity1);
 
         UserResponseDTO userResponseDTO1 = UserResponseDTO.builder()
-            .id(userId1)
-            .build();
+                .id(userId1)
+                .build();
 
         when(userRepository.findUsersByIds(userIds)).thenReturn(userEntities);
         when(userMapper.toDTO(userEntity1)).thenReturn(userResponseDTO1);
@@ -211,7 +219,7 @@ class UserServiceTest {
     }
 
     @Test
-    void getUsersByIds_shouldReturnEmptyList_whenNoUsersExist(){
+    void getUsersByIds_shouldReturnEmptyList_whenNoUsersExist() {
         UUID userId1 = UUID.randomUUID();
         UUID userId2 = UUID.randomUUID();
         List<UUID> userIds = Arrays.asList(userId1, userId2);
@@ -227,22 +235,23 @@ class UserServiceTest {
     }
 
     @Test
-    void getUserByEmail_shouldReturnUserDTO_whenUserExists(){
+    void getUserByEmail_shouldReturnUserDTO_whenUserExists() {
         String email = "test@test.com";
         UUID userId = UUID.randomUUID();
         User userEntity = User.builder()
-            .id(userId)
-            .email(email)
-            .build();
+                .id(userId)
+                .email(email)
+                .build();
 
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(userId)
-            .email(email)
-            .build();
+                .id(userId)
+                .email(email)
+                .build();
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(userEntity));
         when(userMapper.toDTO(userEntity)).thenReturn(userResponseDTO);
 
+        when(userDetailsProvider.getEmail()).thenReturn(email);
         UserResponseDTO result = userService.getUserByEmail(email);
 
         assertNotNull(result);
@@ -254,11 +263,12 @@ class UserServiceTest {
     }
 
     @Test
-    void getUserByEmail_shouldThrowResourceNotFoundException_whenUserDoesntExists(){
+    void getUserByEmail_shouldThrowResourceNotFoundException_whenUserDoesntExists() {
         String email = "test@test.com";
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
+        when(userDetailsProvider.getEmail()).thenReturn(email);
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.getUserByEmail(email);
         });
@@ -270,72 +280,74 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUser_shouldReturnUpdatedUserDTO_whenUserExists(){
+    void updateUser_shouldReturnUpdatedUserDTO_whenUserExists() {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .email("new@test.com")
-            .name("newName")
-            .surname("newSurname")
-            .birthDate(LocalDate.of(2000, 12, 31))
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .email("new@test.com")
+                .name("newName")
+                .surname("newSurname")
+                .birthDate(LocalDate.of(2000, 12, 31))
+                .build();
 
         User userEntity = User.builder()
-            .id(userId)
-            .email("old@test.com")
-            .name("oldName")
-            .surname("oldSurname")
-            .birthDate(LocalDate.of(1990, 2, 2))
-            .build();
+                .id(userId)
+                .email("old@test.com")
+                .name("oldName")
+                .surname("oldSurname")
+                .birthDate(LocalDate.of(1990, 2, 2))
+                .build();
 
         User updatedUserEntity = User.builder()
-            .id(userId)
-            .email(userRequestDTO.getEmail())
-            .name(userRequestDTO.getName())
-            .surname(userRequestDTO.getSurname())
-            .birthDate(userRequestDTO.getBirthDate())
-            .build();
+                .id(userId)
+                .email(updateUserRequestDTO.getEmail())
+                .name(updateUserRequestDTO.getName())
+                .surname(updateUserRequestDTO.getSurname())
+                .birthDate(updateUserRequestDTO.getBirthDate())
+                .build();
 
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(userId)
-            .email(userRequestDTO.getEmail())
-            .name(userRequestDTO.getName())
-            .surname(userRequestDTO.getSurname())
-            .birthDate(userRequestDTO.getBirthDate())
-            .build();
+                .id(userId)
+                .email(updateUserRequestDTO.getEmail())
+                .name(updateUserRequestDTO.getName())
+                .surname(updateUserRequestDTO.getSurname())
+                .birthDate(updateUserRequestDTO.getBirthDate())
+                .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
-        when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(false);
-        doNothing().when(userMapper).updateEntity(userRequestDTO, userEntity);
+        when(userRepository.existsByEmail(updateUserRequestDTO.getEmail())).thenReturn(false);
+        doNothing().when(userMapper).updateEntity(updateUserRequestDTO, userEntity);
         when(userRepository.save(userEntity)).thenReturn(updatedUserEntity);
         when(userMapper.toDTO(updatedUserEntity)).thenReturn(userResponseDTO);
 
-        UserResponseDTO result = userService.updateUser(userId, userRequestDTO);
+        when(userDetailsProvider.getUserId()).thenReturn(userId);
+        UserResponseDTO result = userService.updateUser(userId, updateUserRequestDTO);
 
         assertNotNull(result);
         assertEquals(userId, result.getId());
-        assertEquals(userRequestDTO.getEmail(), result.getEmail());
-        assertEquals(userRequestDTO.getName(), result.getName());
-        assertEquals(userRequestDTO.getSurname(), result.getSurname());
-        assertEquals(userRequestDTO.getBirthDate(), result.getBirthDate());
+        assertEquals(updateUserRequestDTO.getEmail(), result.getEmail());
+        assertEquals(updateUserRequestDTO.getName(), result.getName());
+        assertEquals(updateUserRequestDTO.getSurname(), result.getSurname());
+        assertEquals(updateUserRequestDTO.getBirthDate(), result.getBirthDate());
 
         verify(userRepository).findById(userId);
-        verify(userRepository).existsByEmail(userRequestDTO.getEmail());
-        verify(userMapper).updateEntity(userRequestDTO, userEntity);
+        verify(userRepository).existsByEmail(updateUserRequestDTO.getEmail());
+        verify(userMapper).updateEntity(updateUserRequestDTO, userEntity);
         verify(userRepository).save(userEntity);
         verify(userMapper).toDTO(updatedUserEntity);
     }
 
     @Test
-    void updateUser_shouldThrowResourceNotFoundException_whenUserDoesntExists(){
+    void updateUser_shouldThrowResourceNotFoundException_whenUserDoesntExists() {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .email("new@test.com")
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .email("new@test.com")
+                .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
+        when(userDetailsProvider.getUserId()).thenReturn(userId);
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            userService.updateUser(userId, userRequestDTO);
+            userService.updateUser(userId, updateUserRequestDTO);
         });
 
         assertEquals(USER_NOT_FOUND, exception.getMessage());
@@ -348,38 +360,40 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUser_shouldThrowConflictException_whenEmailAlreadyExists(){
+    void updateUser_shouldThrowConflictException_whenEmailAlreadyExists() {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .email("new@test.com")
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .email("new@test.com")
+                .build();
 
         User userEntity = User.builder()
-            .id(userId)
-            .email("old@test.com")
-            .build();
+                .id(userId)
+                .email("old@test.com")
+                .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
-        when(userRepository.existsByEmail(userRequestDTO.getEmail())).thenReturn(true);
+        when(userRepository.existsByEmail(updateUserRequestDTO.getEmail())).thenReturn(true);
 
+        when(userDetailsProvider.getUserId()).thenReturn(userId);
         ConflictException exception = assertThrows(ConflictException.class, () -> {
-            userService.updateUser(userId, userRequestDTO);
+            userService.updateUser(userId, updateUserRequestDTO);
         });
 
-        assertEquals(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail()), exception.getMessage());
+        assertEquals(String.format(USER_ALREADY_EXISTS, updateUserRequestDTO.getEmail()), exception.getMessage());
 
         verify(userRepository).findById(userId);
-        verify(userRepository).existsByEmail(userRequestDTO.getEmail());
+        verify(userRepository).existsByEmail(updateUserRequestDTO.getEmail());
         verify(userMapper, never()).updateEntity(any(), any());
         verify(userRepository, never()).save(any());
         verify(userMapper, never()).toDTO(any());
     }
 
     @Test
-    void deleteUser_shouldDeleteUser(){
+    void deleteUser_shouldDeleteUser() {
         UUID userId = UUID.randomUUID();
 
         doNothing().when(userRepository).deleteById(userId);
+        when(userDetailsProvider.getUserId()).thenReturn(userId);
 
         userService.deleteUser(userId);
 

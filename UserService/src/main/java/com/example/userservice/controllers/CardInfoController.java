@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,26 +33,31 @@ public class CardInfoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CardInfoResponseDTO> getCardInfoById(@PathVariable UUID id) {
         return ResponseEntity.ok(cardInfoService.getCardInfoById(id));
     }
 
     @GetMapping("/ids")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CardInfoResponseDTO>> getCardInfosByIds(@RequestParam List<UUID> ids) {
         return ResponseEntity.ok(cardInfoService.getCardInfosByIds(ids));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CardInfoResponseDTO> createCardInfo(@Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cardInfoService.createCardInfo(cardInfoRequestDTO));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CardInfoResponseDTO> updateCardInfo(@PathVariable UUID id, @Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
         return ResponseEntity.ok(cardInfoService.updateCardInfo(id, cardInfoRequestDTO));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     public ResponseEntity<Void> deleteCardInfo(@PathVariable UUID id) {
         cardInfoService.deleteCardInfo(id);
         return ResponseEntity.noContent().build();

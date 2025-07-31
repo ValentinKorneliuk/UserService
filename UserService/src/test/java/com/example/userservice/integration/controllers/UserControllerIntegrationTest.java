@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
 
+import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.UpdateUserRequestDTO;
 import org.junit.jupiter.api.Test;
 
 import static com.example.userservice.exceptions.ConflictException.USER_ALREADY_EXISTS;
@@ -35,7 +37,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
 
 import com.example.userservice.controllers.UserController;
-import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.exceptions.ConflictException;
 import com.example.userservice.exceptions.ResourceNotFoundException;
@@ -51,7 +52,7 @@ class UserControllerIntegrationTest {
 
     @MockitoBean
     private UserService userService;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -59,24 +60,24 @@ class UserControllerIntegrationTest {
     void getUserById_shouldReturnUser() throws Exception {
         UUID userId = UUID.randomUUID();
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(userId)
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
+                .id(userId)
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
 
         when(userService.getUserById(userId)).thenReturn(userResponseDTO);
-        
+
         mockMvc.perform(get("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(userId.toString()))
-            .andExpect(jsonPath("$.name").value("John"))
-            .andExpect(jsonPath("$.surname").value("Doe"))
-            .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
-            .andExpect(jsonPath("$.email").value("john.doe@example.com"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId.toString()))
+                .andExpect(jsonPath("$.name").value("John"))
+                .andExpect(jsonPath("$.surname").value("Doe"))
+                .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
+                .andExpect(jsonPath("$.email").value("john.doe@example.com"));
     }
 
     @Test
@@ -86,14 +87,14 @@ class UserControllerIntegrationTest {
         when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(get("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users/" + userId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users/" + userId));
     }
 
     @Test
@@ -104,314 +105,317 @@ class UserControllerIntegrationTest {
         List<UUID> userIds = Arrays.asList(id1, id2, id3);
         List<UserResponseDTO> userResponseDTOs = new ArrayList<>();
         userResponseDTOs.add(UserResponseDTO.builder()
-            .id(id1)
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build());
+                .id(id1)
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build());
         userResponseDTOs.add(UserResponseDTO.builder()
-            .id(id2)
-            .name("Jane")
-            .surname("Smith")
-            .birthDate(LocalDate.of(1991, 2, 2))
-            .email("jane.smith@example.com")
-            .build());
+                .id(id2)
+                .name("Jane")
+                .surname("Smith")
+                .birthDate(LocalDate.of(1991, 2, 2))
+                .email("jane.smith@example.com")
+                .build());
         userResponseDTOs.add(UserResponseDTO.builder()
-            .id(id3)
-            .name("Jim")
-            .surname("Beam")
-            .birthDate(LocalDate.of(1992, 3, 3))
-            .email("jim.beam@example.com")
-            .build());
+                .id(id3)
+                .name("Jim")
+                .surname("Beam")
+                .birthDate(LocalDate.of(1992, 3, 3))
+                .email("jim.beam@example.com")
+                .build());
 
         when(userService.getUsersByIds(userIds)).thenReturn(userResponseDTOs);
 
         mockMvc.perform(get("/api/users/ids")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .param("ids", userIds.stream().map(UUID::toString).collect(Collectors.joining(","))))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.size()").value(userResponseDTOs.size()))
-            .andExpect(jsonPath("$[0].id").value(userResponseDTOs.get(0).getId().toString()))
-            .andExpect(jsonPath("$[0].name").value(userResponseDTOs.get(0).getName()))
-            .andExpect(jsonPath("$[0].surname").value(userResponseDTOs.get(0).getSurname()))
-            .andExpect(jsonPath("$[0].birthDate").value(userResponseDTOs.get(0).getBirthDate().toString()))
-            .andExpect(jsonPath("$[0].email").value(userResponseDTOs.get(0).getEmail()));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("ids", userIds.stream().map(UUID::toString).collect(Collectors.joining(","))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(userResponseDTOs.size()))
+                .andExpect(jsonPath("$[0].id").value(userResponseDTOs.get(0).getId().toString()))
+                .andExpect(jsonPath("$[0].name").value(userResponseDTOs.get(0).getName()))
+                .andExpect(jsonPath("$[0].surname").value(userResponseDTOs.get(0).getSurname()))
+                .andExpect(jsonPath("$[0].birthDate").value(userResponseDTOs.get(0).getBirthDate().toString()))
+                .andExpect(jsonPath("$[0].email").value(userResponseDTOs.get(0).getEmail()));
     }
 
     @Test
     void getUsersByIds_shouldReturnEmptyList() throws Exception {
         List<UUID> userIds = Arrays.asList();
         when(userService.getUsersByIds(userIds)).thenReturn(new ArrayList<>());
-        
+
         mockMvc.perform(get("/api/users/ids")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .param("ids", userIds.stream().map(UUID::toString).collect(Collectors.joining(","))))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.size()").value(0));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("ids", userIds.stream().map(UUID::toString).collect(Collectors.joining(","))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(0));
     }
 
     @Test
     void getUsersByIds_shouldReturnBadRequestOnAbsentIds() throws Exception {
         mockMvc.perform(get("/api/users/ids")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("ids parameter is missing"))
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Missing request parameter"))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users/ids"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ids parameter is missing"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Missing request parameter"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users/ids"));
     }
 
     @Test
     void createUser_shouldReturnUser() throws Exception {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
         UUID userId = UUID.randomUUID();
-        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(userId)
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .id(userId)
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
 
-        when(userService.createUser(any(UserRequestDTO.class))).thenReturn(userResponseDTO);
+        UserResponseDTO userResponseDTO = UserResponseDTO.builder()
+                .id(userId)
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
+
+        when(userService.createUser(any(CreateUserRequestDto.class))).thenReturn(userResponseDTO);
 
         mockMvc.perform(post("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(userId.toString()))
-            .andExpect(jsonPath("$.name").value("John"))
-            .andExpect(jsonPath("$.surname").value("Doe"))
-            .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
-            .andExpect(jsonPath("$.email").value("john.doe@example.com"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createUserRequestDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(userId.toString()))
+                .andExpect(jsonPath("$.name").value("John"))
+                .andExpect(jsonPath("$.surname").value("Doe"))
+                .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
+                .andExpect(jsonPath("$.email").value("john.doe@example.com"));
     }
 
     @Test
     void createUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("")
-            .surname(" ")
-            .birthDate(null)
-            .email(" ")
-            .build();
-        
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .name("")
+                .surname(" ")
+                .birthDate(null)
+                .email(" ")
+                .build();
+
         mockMvc.perform(post("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("name: Name must not be blank")))
-            .andExpect(jsonPath("$.messages", hasItem("surname: Surname must not be blank")))
-            .andExpect(jsonPath("$.messages", hasItem("birthDate: Birth date is required")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email must not be blank")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
-            .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createUserRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.messages", hasItem("id: Id must not be blank")))
+                .andExpect(jsonPath("$.messages", hasItem("name: Name must not be blank")))
+                .andExpect(jsonPath("$.messages", hasItem("surname: Surname must not be blank")))
+                .andExpect(jsonPath("$.messages", hasItem("birthDate: Birth date is required")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email must not be blank")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
+                .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users"));
     }
 
     @Test
     void createUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
-            .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com")
-            .build();
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
+                .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com")
+                .build();
 
         mockMvc.perform(post("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email must be less than 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createUserRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email must be less than 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users"));
     }
 
     @Test
     void createUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
-        
-        when(userService.createUser(any(UserRequestDTO.class)))
-            .thenThrow(new ConflictException(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())));
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .id(UUID.randomUUID())
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
+
+        when(userService.createUser(any(CreateUserRequestDto.class)))
+                .thenThrow(new ConflictException(String.format(USER_ALREADY_EXISTS, createUserRequestDTO.getEmail())));
 
         mockMvc.perform(post("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.message").value(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())))
-            .andExpect(jsonPath("$.status").value(409))
-            .andExpect(jsonPath("$.error").value("Conflict"))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createUserRequestDTO)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(String.format(USER_ALREADY_EXISTS, createUserRequestDTO.getEmail())))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("Conflict"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users"));
     }
 
     @Test
     void updateUser_shouldReturnUpdatedUser() throws Exception {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
         UserResponseDTO userResponseDTO = UserResponseDTO.builder()
-            .id(userId)
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
+                .id(userId)
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
 
-        when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenReturn(userResponseDTO);
+        when(userService.updateUser(eq(userId), any(UpdateUserRequestDTO.class))).thenReturn(userResponseDTO);
 
         mockMvc.perform(put("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(userId.toString()))
-            .andExpect(jsonPath("$.name").value("John"))
-            .andExpect(jsonPath("$.surname").value("Doe"))
-            .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
-            .andExpect(jsonPath("$.email").value("john.doe@example.com"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateUserRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId.toString()))
+                .andExpect(jsonPath("$.name").value("John"))
+                .andExpect(jsonPath("$.surname").value("Doe"))
+                .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
+                .andExpect(jsonPath("$.email").value("john.doe@example.com"));
     }
 
     @Test
     void updateUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("")
-            .surname(" ")
-            .birthDate(null)
-            .email(" ")
-            .build();
-        
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("")
+                .surname(" ")
+                .birthDate(null)
+                .email(" ")
+                .build();
+
         mockMvc.perform(put("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("name: Name must not be blank")))
-            .andExpect(jsonPath("$.messages", hasItem("surname: Surname must not be blank")))
-            .andExpect(jsonPath("$.messages", hasItem("birthDate: Birth date is required")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email must not be blank")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
-            .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users/" + userId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateUserRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.messages", hasItem("name: Name must not be blank")))
+                .andExpect(jsonPath("$.messages", hasItem("surname: Surname must not be blank")))
+                .andExpect(jsonPath("$.messages", hasItem("birthDate: Birth date is required")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email must not be blank")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
+                .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users/" + userId));
     }
 
     @Test
     void updateUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
-            .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com")
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
+                .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.comjohn.doe@example.com")
+                .build();
 
         mockMvc.perform(put("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email must be less than 100 characters")))
-            .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users/" + userId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateUserRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.messages", hasItem("name: Name must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("surname: Surname must be between 2 and 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email must be less than 100 characters")))
+                .andExpect(jsonPath("$.messages", hasItem("email: Email should be valid")))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users/" + userId));
     }
 
     @Test
     void updateUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
-        
-        when(userService.updateUser(eq(userId), any(UserRequestDTO.class)))
-            .thenThrow(new ConflictException(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())));
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
+
+        when(userService.updateUser(eq(userId), any(UpdateUserRequestDTO.class)))
+                .thenThrow(new ConflictException(String.format(USER_ALREADY_EXISTS, updateUserRequestDTO.getEmail())));
 
         mockMvc.perform(put("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.message").value(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail())))
-            .andExpect(jsonPath("$.status").value(409))
-            .andExpect(jsonPath("$.error").value("Conflict"))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/users/" + userId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateUserRequestDTO)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(String.format(USER_ALREADY_EXISTS, updateUserRequestDTO.getEmail())))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("Conflict"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/users/" + userId));
     }
 
     @Test
     void updateUser_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         UUID userId = UUID.randomUUID();
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("john.doe@example.com")
-            .build();
-        
-        when(userService.updateUser(eq(userId), any(UserRequestDTO.class))).thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("john.doe@example.com")
+                .build();
+
+        when(userService.updateUser(eq(userId), any(UpdateUserRequestDTO.class))).thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(put("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userRequestDTO)))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
-            .andExpect(jsonPath("$.path").value("/api/users/" + userId));
-    }   
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateUserRequestDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
+                .andExpect(jsonPath("$.path").value("/api/users/" + userId));
+    }
 
     @Test
     void deleteUser_shouldReturnNoContent() throws Exception {
         UUID userId = UUID.randomUUID();
         doNothing().when(userService).deleteUser(userId);
-        
+
         mockMvc.perform(delete("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
     }
 
 }

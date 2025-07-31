@@ -12,6 +12,7 @@ import com.example.userservice.entities.CardInfo;
 import com.example.userservice.entities.User;
 import com.example.userservice.repositories.CardInfoRepository;
 import com.example.userservice.repositories.UserRepository;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,8 @@ import com.example.userservice.integration.BaseContainerIntegrationTest;
 
 @ActiveProfiles("test")
 @Sql(statements = {
-    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
-    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+        "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+        "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DataJpaTest
 class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
@@ -57,30 +58,32 @@ class CardInfoRepositoryIntegrationTest extends BaseContainerIntegrationTest {
     @BeforeEach
     void setUp() {
         user1 = User.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test1@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test1@example.com")
+                .build();
         user2 = User.builder()
-            .name("Jane")
-            .surname("Smith")
-            .birthDate(LocalDate.of(1995, 2, 2))
-            .email("test2@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                .name("Jane")
+                .surname("Smith")
+                .birthDate(LocalDate.of(1995, 2, 2))
+                .email("test2@example.com")
+                .build();
 
         cardInfo1 = CardInfo.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2026, 1, 1))
-            .user(user1)
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2026, 1, 1))
+                .user(user1)
+                .build();
         cardInfo2 = CardInfo.builder()
-            .number("2222333344445555")
-            .holder("Jane Smith")
-            .expirationDate(LocalDate.of(2026, 2, 2))
-            .user(user2)
-            .build();
+                .number("2222333344445555")
+                .holder("Jane Smith")
+                .expirationDate(LocalDate.of(2026, 2, 2))
+                .user(user2)
+                .build();
 
         userRepository.saveAllAndFlush(new ArrayList<>(List.of(user1, user2)));
         cardInfoRepository.saveAllAndFlush(new ArrayList<>(List.of(cardInfo1, cardInfo2)));

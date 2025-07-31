@@ -5,13 +5,15 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 public class CardInfoResponseDTO implements Serializable {
     private static final long serialVersionUID = 1L;
-    
+
     private UUID id;
     private String number;
     private String holder;

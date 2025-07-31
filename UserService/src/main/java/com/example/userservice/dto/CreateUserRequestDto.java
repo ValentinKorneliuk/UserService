@@ -1,16 +1,23 @@
 package com.example.userservice.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDate;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@Builder    
-public class UserRequestDTO {
+import java.time.LocalDate;
+import java.util.UUID;
+
+@Getter
+@Setter
+@Builder
+public class CreateUserRequestDto {
+
+    @NotNull(message = "Id must not be blank")
+    private UUID id;
 
     @NotBlank(message = "Name must not be blank")
     @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")

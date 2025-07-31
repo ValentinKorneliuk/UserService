@@ -10,6 +10,8 @@ import com.example.userservice.dto.CardInfoRequestDTO;
 import com.example.userservice.dto.CardInfoResponseDTO;
 import com.example.userservice.entities.CardInfo;
 
+import java.util.Optional;
+
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public abstract class CardInfoMapper {
     public abstract CardInfo toEntity(CardInfoRequestDTO dto);
@@ -21,8 +23,8 @@ public abstract class CardInfoMapper {
 
     @BeforeMapping
     public void cleanCardNumber(CardInfoRequestDTO dto) {
-        if (dto.getNumber() != null) {
-            dto.setNumber(dto.getNumber().replaceAll("[\\s-]", ""));
-        }
+        Optional.ofNullable(dto.getNumber())
+                .map(n -> n.replaceAll("[\\s-]", ""))
+                .ifPresent(dto::setNumber);
     }
 }

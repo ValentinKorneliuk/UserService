@@ -23,13 +23,13 @@ import org.springframework.test.context.jdbc.Sql;
 
 import com.example.userservice.integration.BaseContainerIntegrationTest;
 import com.example.userservice.entities.User;
-import com.example.userservice.entities.CardInfo;   
+import com.example.userservice.entities.CardInfo;
 import com.example.userservice.repositories.UserRepository;
 
 @ActiveProfiles("test")
 @Sql(statements = {
-    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
-    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+        "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+        "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DataJpaTest
 class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
@@ -55,29 +55,31 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
     @BeforeEach
     void setUp() {
         user1 = User.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test1@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test1@example.com")
+                .build();
         user2 = User.builder()
-            .name("Jane")
-            .surname("Smith")
-            .birthDate(LocalDate.of(1995, 2, 2))
-            .email("test2@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                .name("Jane")
+                .surname("Smith")
+                .birthDate(LocalDate.of(1995, 2, 2))
+                .email("test2@example.com")
+                .build();
         cardInfo1 = CardInfo.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2026, 1, 1))
-            .user(user1)
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2026, 1, 1))
+                .user(user1)
+                .build();
         cardInfo2 = CardInfo.builder()
-            .number("2222333344445555")
-            .holder("Jane Smith")
-            .expirationDate(LocalDate.of(2026, 2, 2))
-            .user(user2)
-            .build();
+                .number("2222333344445555")
+                .holder("Jane Smith")
+                .expirationDate(LocalDate.of(2026, 2, 2))
+                .user(user2)
+                .build();
 
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1)));
         user2.setCardInfos(new ArrayList<>(List.of(cardInfo2)));
@@ -87,6 +89,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
     @Test
     void saveUser_shouldSaveUser_whenUserEmailUnique() {
         User user = new User();
+        user.setId(UUID.randomUUID());
         user.setEmail("test3@example.com");
         user.setName("Anna  ");
         user.setSurname("Smith");
@@ -105,6 +108,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
     @Test
     void saveUser_shouldThrowException_whenEmailAlreadyExists() {
         User user = new User();
+        user.setId(UUID.randomUUID());
         user.setEmail("test1@example.com");
         user.setName("Jane");
         user.setSurname("Smith");
@@ -119,8 +123,9 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
         user1.setName("Bob");
         user1.setSurname("Michaels");
         user1.setBirthDate(LocalDate.of(1993, 4, 25));
+        user1.setCardInfos(new ArrayList<>());
 
-        userRepository.save(user1);
+        userRepository.saveAndFlush(user1);
 
         Optional<User> retrievedUser = userRepository.findById(user1.getId());
         assertNotNull(retrievedUser);
@@ -135,7 +140,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
         user1.setEmail("test2@example.com");
         user1.setName("Bob");
         user1.setSurname("Michaels");
-        user1.setBirthDate(LocalDate.of(1993, 4, 25)); 
+        user1.setBirthDate(LocalDate.of(1993, 4, 25));
 
         assertThrows(DataIntegrityViolationException.class, () -> userRepository.saveAndFlush(user1));
     }
@@ -151,7 +156,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
     @Test
     void findById_shouldReturnUserWithCardInfos_whenUserExists() {
         UUID userId = user1.getId();
-        
+
         Optional<User> retrievedUser = userRepository.findById(userId);
 
         assertNotNull(retrievedUser);
@@ -169,7 +174,7 @@ class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
     @Test
     void findByEmail_shouldReturnUserWithCardInfos_whenUserExists() {
         String email = user1.getEmail();
-        
+
         Optional<User> retrievedUser = userRepository.findByEmail(email);
 
         assertNotNull(retrievedUser);
