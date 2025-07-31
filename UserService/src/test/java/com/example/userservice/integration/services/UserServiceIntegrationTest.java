@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.example.userservice.dto.UpdateUserRequestDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 
-import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.entities.CardInfo;
 import com.example.userservice.entities.User;
@@ -39,8 +39,8 @@ import org.springframework.test.context.DynamicPropertySource;
 
 @ActiveProfiles("test")
 @Sql(statements = {
-    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
-    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+        "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+        "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest
 class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
@@ -72,23 +72,25 @@ class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
     void setUp() {
 
         user1 = User.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test1@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test@gmail.com")
+                .build();
         user2 = User.builder()
-            .name("Jane")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test2@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                .name("Jane")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test2@gmail.com")
+                .build();
         cardInfo1 = CardInfo.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2025, 1, 1))
-            .user(user1)
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2025, 1, 1))
+                .user(user1)
+                .build();
 
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1)));
         userRepository.saveAllAndFlush(List.of(user1, user2));
@@ -118,15 +120,15 @@ class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void updateUser_shouldRollbackTransactionOnConflict() {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("Jane")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test2@example.com")
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("Jane")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test2@gmail.com")
+                .build();
 
         UUID userId = user1.getId();
-        assertThrows(ConflictException.class, () -> userService.updateUser(userId, userRequestDTO));
+        assertThrows(ConflictException.class, () -> userService.updateUser(userId, updateUserRequestDTO));
 
         User unchangedUser = userRepository.findById(user1.getId()).orElseThrow();
         assertEquals(user1.getEmail(), unchangedUser.getEmail());
@@ -134,21 +136,21 @@ class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void updateUser_shouldPutUpdatedUserInCache() {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("Jane")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("newemail@example.com")
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("Jane")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("newemail@example.com")
+                .build();
 
-        userService.updateUser(user1.getId(), userRequestDTO);
+        userService.updateUser(user1.getId(), updateUserRequestDTO);
 
         Cache cache = cacheManager.getCache("users");
         assertNotNull(cache);
 
         UserResponseDTO cachedUser = cache.get(user1.getId(), UserResponseDTO.class);
         assertNotNull(cachedUser);
-        assertEquals(userRequestDTO.getEmail(), cachedUser.getEmail());
+        assertEquals(updateUserRequestDTO.getEmail(), cachedUser.getEmail());
     }
 
     @Test

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +14,7 @@ import lombok.Setter;
 @Builder
 public class UserResponseDTO implements Serializable {
     private static final long serialVersionUID = 1L;
-    
+
     private UUID id;
     private String name;
     private String surname;

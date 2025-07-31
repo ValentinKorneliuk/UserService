@@ -2,22 +2,20 @@ package com.example.userservice.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 import jakarta.persistence.OneToMany;
+
 import java.util.List;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import lombok.Data;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "users")
@@ -28,8 +26,6 @@ import org.hibernate.annotations.UuidGenerator;
 @AllArgsConstructor
 public class User {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @UuidGenerator
     private UUID id;
 
     @Column(name = "name")

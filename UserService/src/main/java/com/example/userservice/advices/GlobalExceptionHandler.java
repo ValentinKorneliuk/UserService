@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -81,6 +82,17 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.CONFLICT,
                 "Conflict",
+                ex.getMessage(),
+                request.getRequestURI(),
+                null
+        );
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleConflict(AuthorizationDeniedException ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                "Forbidden",
                 ex.getMessage(),
                 request.getRequestURI(),
                 null

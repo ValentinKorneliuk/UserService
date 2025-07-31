@@ -5,12 +5,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -27,7 +25,4 @@ public class CardInfoRequestDTO {
     @NotNull(message = "Expiration date is required")
     @Future(message = "Expiration date must be in the future")
     private LocalDate expirationDate;
-
-    @NotNull(message = "User ID is required")
-    private UUID userId;
 }

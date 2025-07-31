@@ -3,7 +3,7 @@ package com.example.userservice.integration.controllers;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.List;  
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
 
@@ -58,39 +58,39 @@ class CardInfoControllerIntegrationTest {
     void getCardInfoById_shouldReturnCardInfo() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
-            .id(cardInfoId)
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .build();
-            
+                .id(cardInfoId)
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
+
         when(cardInfoService.getCardInfoById(cardInfoId)).thenReturn(cardInfoResponseDTO);
-        
+
         mockMvc.perform(get("/api/card-infos/{id}", cardInfoId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(cardInfoId.toString()))
-            .andExpect(jsonPath("$.number").value("1111222233334444"))
-            .andExpect(jsonPath("$.holder").value("John Doe"))
-            .andExpect(jsonPath("$.expirationDate").value("2027-01-01"));
-    }  
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(cardInfoId.toString()))
+                .andExpect(jsonPath("$.number").value("1111222233334444"))
+                .andExpect(jsonPath("$.holder").value("John Doe"))
+                .andExpect(jsonPath("$.expirationDate").value("2027-01-01"));
+    }
 
     @Test
     void getCardInfoById_shouldReturnNotFound() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
 
         when(cardInfoService.getCardInfoById(cardInfoId)).thenThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND));
-        
+
         mockMvc.perform(get("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value("Card info not found"))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Card info not found"))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
     }
 
     @Test
@@ -101,361 +101,346 @@ class CardInfoControllerIntegrationTest {
         List<UUID> cardInfoIds = Arrays.asList(id1, id2, id3);
         List<CardInfoResponseDTO> cardInfoResponseDTOs = new ArrayList<>();
         cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
-            .id(id1)
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .build());
+                .id(id1)
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build());
         cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
-            .id(id2)
-            .number("2222333344445555")
-            .holder("Jane Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .build());
+                .id(id2)
+                .number("2222333344445555")
+                .holder("Jane Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build());
         cardInfoResponseDTOs.add(CardInfoResponseDTO.builder()
-            .id(id3)
-            .number("3333444455556666")
-            .holder("Jim Beam")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .build());
+                .id(id3)
+                .number("3333444455556666")
+                .holder("Jim Beam")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build());
 
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenReturn(cardInfoResponseDTOs);
 
         mockMvc.perform(get("/api/card-infos/ids")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .param("ids", cardInfoIds.stream().map(String::valueOf).collect(Collectors.joining(","))))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.size()").value(cardInfoResponseDTOs.size()))
-            .andExpect(jsonPath("$[0].id").value(cardInfoResponseDTOs.get(0).getId().toString()))
-            .andExpect(jsonPath("$[0].number").value(cardInfoResponseDTOs.get(0).getNumber()))
-            .andExpect(jsonPath("$[0].holder").value(cardInfoResponseDTOs.get(0).getHolder()))
-            .andExpect(jsonPath("$[0].expirationDate").value(cardInfoResponseDTOs.get(0).getExpirationDate().toString()));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("ids", cardInfoIds.stream().map(String::valueOf).collect(Collectors.joining(","))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(cardInfoResponseDTOs.size()))
+                .andExpect(jsonPath("$[0].id").value(cardInfoResponseDTOs.get(0).getId().toString()))
+                .andExpect(jsonPath("$[0].number").value(cardInfoResponseDTOs.get(0).getNumber()))
+                .andExpect(jsonPath("$[0].holder").value(cardInfoResponseDTOs.get(0).getHolder()))
+                .andExpect(jsonPath("$[0].expirationDate").value(cardInfoResponseDTOs.get(0).getExpirationDate().toString()));
     }
 
     @Test
     void getCardInfosByIds_shouldReturnEmptyList() throws Exception {
         List<UUID> cardInfoIds = Arrays.asList();
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenReturn(new ArrayList<>());
-        
+
         mockMvc.perform(get("/api/card-infos/ids")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .param("ids", cardInfoIds.stream().map(String::valueOf).collect(Collectors.joining(","))))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.size()").value(0));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("ids", cardInfoIds.stream().map(String::valueOf).collect(Collectors.joining(","))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(0));
     }
 
     @Test
     void getCardInfosByIds_shouldReturnBadRequestOnAbsentIds() throws Exception {
         List<UUID> cardInfoIds = Arrays.asList();
         when(cardInfoService.getCardInfosByIds(cardInfoIds)).thenThrow(new IllegalArgumentException("ids parameter is missing"));
-        
+
         mockMvc.perform(get("/api/card-infos/ids")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("ids parameter is missing"))
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Missing request parameter"))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/card-infos/ids"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ids parameter is missing"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Missing request parameter"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/card-infos/ids"));
     }
 
     @Test
     void createCardInfo_shouldReturnCardInfo() throws Exception {
-        UUID userId = UUID.randomUUID();
         UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(userId)
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
-            .id(cardInfoId)
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .build();
+                .id(cardInfoId)
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
 
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class))).thenReturn(cardInfoResponseDTO);
-        
+
         mockMvc.perform(post("/api/card-infos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId().toString()))
-            .andExpect(jsonPath("$.number").value(cardInfoResponseDTO.getNumber()))
-            .andExpect(jsonPath("$.holder").value(cardInfoResponseDTO.getHolder()))
-            .andExpect(jsonPath("$.expirationDate").value(cardInfoResponseDTO.getExpirationDate().toString()))
-            .andExpect(jsonPath("$.userId").value(cardInfoResponseDTO.getUserId()));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId().toString()))
+                .andExpect(jsonPath("$.number").value(cardInfoResponseDTO.getNumber()))
+                .andExpect(jsonPath("$.holder").value(cardInfoResponseDTO.getHolder()))
+                .andExpect(jsonPath("$.expirationDate").value(cardInfoResponseDTO.getExpirationDate().toString()))
+                .andExpect(jsonPath("$.userId").value(cardInfoResponseDTO.getUserId()));
     }
 
     @Test
     void createCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("")
-            .holder(" ")
-            .expirationDate(null)
-            .userId(null)
-            .build();
+                .number("")
+                .holder(" ")
+                .expirationDate(null)
+                .build();
 
         mockMvc.perform(post("/api/card-infos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("number: Card number is required")))
-            .andExpect(jsonPath("$.messages", hasItem("number: Card number must be 16 digits, optionally separated by spaces or hyphens")))
-            .andExpect(jsonPath("$.messages", hasItem("holder: Card holder is required")))
-            .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date is required")))
-            .andExpect(jsonPath("$.messages", hasItem("userId: User ID is required")))
-            .andExpect(jsonPath("$.path").value("/api/card-infos"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.messages", hasItem("number: Card number is required")))
+                .andExpect(jsonPath("$.messages", hasItem("number: Card number must be 16 digits, optionally separated by spaces or hyphens")))
+                .andExpect(jsonPath("$.messages", hasItem("holder: Card holder is required")))
+                .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date is required")))
+                .andExpect(jsonPath("$.path").value("/api/card-infos"));
     }
 
     @Test
     void createCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2024, 1, 1))
-            .userId(UUID.randomUUID())
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2024, 1, 1))
+                .build();
 
         mockMvc.perform(post("/api/card-infos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date must be in the future")))
-            .andExpect(jsonPath("$.path").value("/api/card-infos"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date must be in the future")))
+                .andExpect(jsonPath("$.path").value("/api/card-infos"));
     }
 
     @Test
     void createCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(UUID.randomUUID())
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
 
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class)))
-            .thenThrow(new ConflictException(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())));
+                .thenThrow(new ConflictException(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())));
 
         mockMvc.perform(post("/api/card-infos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.status").value(409))
-            .andExpect(jsonPath("$.error").value("Conflict"))
-            .andExpect(jsonPath("$.message").value(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())))
-            .andExpect(jsonPath("$.path").value("/api/card-infos"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("Conflict"))
+                .andExpect(jsonPath("$.message").value(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())))
+                .andExpect(jsonPath("$.path").value("/api/card-infos"));
     }
 
     @Test
     void createCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(UUID.randomUUID())
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
 
         when(cardInfoService.createCardInfo(any(CardInfoRequestDTO.class)))
-            .thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
+                .thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(post("/api/card-infos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
-            .andExpect(jsonPath("$.path").value("/api/card-infos"));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.message").value(USER_NOT_FOUND))
+                .andExpect(jsonPath("$.path").value("/api/card-infos"));
     }
 
     @Test
     void updateCardInfo_shouldReturnCardInfo() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(userId)
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
         CardInfoResponseDTO cardInfoResponseDTO = CardInfoResponseDTO.builder()
-            .id(cardInfoId)
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .build();
+                .id(cardInfoId)
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class))).thenReturn(cardInfoResponseDTO);
-        
+
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId().toString()))
-            .andExpect(jsonPath("$.number").value(cardInfoResponseDTO.getNumber()))
-            .andExpect(jsonPath("$.holder").value(cardInfoResponseDTO.getHolder()))
-            .andExpect(jsonPath("$.expirationDate").value(cardInfoResponseDTO.getExpirationDate().toString()));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(cardInfoResponseDTO.getId().toString()))
+                .andExpect(jsonPath("$.number").value(cardInfoResponseDTO.getNumber()))
+                .andExpect(jsonPath("$.holder").value(cardInfoResponseDTO.getHolder()))
+                .andExpect(jsonPath("$.expirationDate").value(cardInfoResponseDTO.getExpirationDate().toString()));
     }
 
     @Test
     void updateCardInfo_shouldReturnBadRequest_whenBlankFieldsAndNullExpirationDate() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("")
-            .holder(" ")
-            .expirationDate(null)
-            .userId(null)
-            .build();
+                .number("")
+                .holder(" ")
+                .expirationDate(null)
+                .build();
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("number: Card number is required")))
-            .andExpect(jsonPath("$.messages", hasItem("number: Card number must be 16 digits, optionally separated by spaces or hyphens")))
-            .andExpect(jsonPath("$.messages", hasItem("holder: Card holder is required")))
-            .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date is required")))
-            .andExpect(jsonPath("$.messages", hasItem("userId: User ID is required")))
-            .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.messages", hasItem("number: Card number is required")))
+                .andExpect(jsonPath("$.messages", hasItem("number: Card number must be 16 digits, optionally separated by spaces or hyphens")))
+                .andExpect(jsonPath("$.messages", hasItem("holder: Card holder is required")))
+                .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date is required")))
+                .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
     }
 
     @Test
     void updateCardInfo_shouldReturnBadRequest_whenExpirationDateIsInThePast() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2024, 1, 1))
-            .userId(UUID.randomUUID())
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2024, 1, 1))
+                .build();
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Validation failed"))
-            .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date must be in the future")))
-            .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.messages", hasItem("expirationDate: Expiration date must be in the future")))
+                .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
     }
 
     @Test
     void updateCardInfo_shouldReturnConflict_whenCardNumberAlreadyExists() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(UUID.randomUUID())
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
-            .thenThrow(new ConflictException(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())));
+                .thenThrow(new ConflictException(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())));
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.status").value(409))
-            .andExpect(jsonPath("$.error").value("Conflict"))
-            .andExpect(jsonPath("$.message").value(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())))
-            .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
-    }  
-    
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("Conflict"))
+                .andExpect(jsonPath("$.message").value(String.format(CARD_INFO_ALREADY_EXISTS, cardInfoRequestDTO.getNumber())))
+                .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
+    }
+
     @Test
     void updateCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(UUID.randomUUID())
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
-        .thenThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND));
+                .thenThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND));
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.message").value("Card info not found"))
-            .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.message").value("Card info not found"))
+                .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
     }
 
     @Test
     void updateCardInfo_shouldReturnResourceNotFoundException_whenUserNotFound() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         CardInfoRequestDTO cardInfoRequestDTO = CardInfoRequestDTO.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2027, 1, 1))
-            .userId(UUID.randomUUID())
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2027, 1, 1))
+                .build();
 
         when(cardInfoService.updateCardInfo(eq(cardInfoId), any(CardInfoRequestDTO.class)))
-        .thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
+                .thenThrow(new ResourceNotFoundException(USER_NOT_FOUND));
 
         mockMvc.perform(put("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.message").value("User not found"))
-            .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cardInfoRequestDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.message").value("User not found"))
+                .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
     }
 
     @Test
     void deleteCardInfo_shouldReturnNoContent() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         doNothing().when(cardInfoService).deleteCardInfo(cardInfoId);
-        
+
         mockMvc.perform(delete("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
     }
 
     @Test
     void deleteCardInfo_shouldReturnResourceNotFoundException_whenCardInfoNotFound() throws Exception {
         UUID cardInfoId = UUID.randomUUID();
         doThrow(new ResourceNotFoundException(CARD_INFO_NOT_FOUND))
-            .when(cardInfoService).deleteCardInfo(cardInfoId);
+                .when(cardInfoService).deleteCardInfo(cardInfoId);
 
         mockMvc.perform(delete("/api/card-infos/{id}", cardInfoId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("Not found"))
-            .andExpect(jsonPath("$.message").value("Card info not found"))
-            .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.message").value("Card info not found"))
+                .andExpect(jsonPath("$.path").value("/api/card-infos/" + cardInfoId));
     }
 
 }

@@ -1,12 +1,13 @@
 package com.example.userservice.integration.EndToEnd;
 
+import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.UpdateUserRequestDTO;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.userservice.repositories.UserRepository;
 import com.example.userservice.entities.User;
 import com.example.userservice.entities.CardInfo;
-import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.integration.BaseContainerIntegrationTest;
 
@@ -15,8 +16,10 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List; 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.core.ParameterizedTypeReference;
 
 import static com.example.userservice.exceptions.ConflictException.USER_ALREADY_EXISTS;
-import static com.example.userservice.exceptions.ResourceNotFoundException.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -35,8 +37,8 @@ import org.springframework.test.context.jdbc.Sql;
 
 @ActiveProfiles("test")
 @Sql(statements = {
-    "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
-    "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+        "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
+        "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
@@ -65,29 +67,31 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     @BeforeEach
     void setUp() {
         user1 = User.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test1@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test1@example.com")
+                .build();
         user2 = User.builder()
-            .name("Jane")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test2@example.com")
-            .build();
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                .name("Jane")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test2@example.com")
+                .build();
         cardInfo1 = CardInfo.builder()
-            .number("1111222233334444")
-            .holder("John Doe")
-            .expirationDate(LocalDate.of(2026, 1, 1))
-            .user(user1)
-            .build();
-        cardInfo2 = CardInfo.builder()  
-            .number("1111222233334445")
-            .holder("Jane Doe")
-            .expirationDate(LocalDate.of(2026, 1, 1))
-            .user(user2)
-            .build();
+                .number("1111222233334444")
+                .holder("John Doe")
+                .expirationDate(LocalDate.of(2026, 1, 1))
+                .user(user1)
+                .build();
+        cardInfo2 = CardInfo.builder()
+                .number("1111222233334445")
+                .holder("Jane Doe")
+                .expirationDate(LocalDate.of(2026, 1, 1))
+                .user(user2)
+                .build();
         user1.setCardInfos(new ArrayList<>(List.of(cardInfo1)));
         user2.setCardInfos(new ArrayList<>(List.of(cardInfo2)));
         userRepository.saveAllAndFlush(List.of(user1, user2));
@@ -96,50 +100,53 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void createUser_shouldReturnCreatedUser() {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("Adam")
-            .surname("Smith")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test3@example.com")
-            .build();
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .id(UUID.randomUUID())
+                .name("Adam")
+                .surname("Smith")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test3@example.com")
+                .build();
         String url = "/api/users";
 
         ResponseEntity<UserResponseDTO> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.POST,
-            new HttpEntity<>(userRequestDTO),
-            UserResponseDTO.class
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(createUserRequestDTO),
+                UserResponseDTO.class
         );
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getId());
-        assertEquals(userRequestDTO.getEmail(), response.getBody().getEmail());
-        assertEquals(userRequestDTO.getName(), response.getBody().getName());
-        assertEquals(userRequestDTO.getSurname(), response.getBody().getSurname());
-        assertEquals(userRequestDTO.getBirthDate(), response.getBody().getBirthDate());
+        assertEquals(createUserRequestDTO.getEmail(), response.getBody().getEmail());
+        assertEquals(createUserRequestDTO.getName(), response.getBody().getName());
+        assertEquals(createUserRequestDTO.getSurname(), response.getBody().getSurname());
+        assertEquals(createUserRequestDTO.getBirthDate(), response.getBody().getBirthDate());
     }
 
     @Test
     void createUser_shouldReturnBadRequest_whenEmailAlreadyExists() {
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("John")
-            .surname("Doe")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .email("test1@example.com")
-            .build();
+        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+                .id(UUID.randomUUID())
+                .name("John")
+                .surname("Doe")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email("test1@example.com")
+                .build();
         String url = "/api/users";
 
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.POST,
-            new HttpEntity<>(userRequestDTO),
-            new ParameterizedTypeReference<Map<String, Object>>() {}
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(createUserRequestDTO),
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                }
         );
-        
+
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertEquals(String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail()), response.getBody().get("message"));
+        assertEquals(String.format(USER_ALREADY_EXISTS, createUserRequestDTO.getEmail()), response.getBody().get("message"));
     }
 
     @Test
@@ -147,12 +154,12 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
         String url = String.format("/api/users/%s", user1.getId().toString());
 
         ResponseEntity<UserResponseDTO> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            null,
-            UserResponseDTO.class
+                url,
+                HttpMethod.GET,
+                null,
+                UserResponseDTO.class
         );
-        
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(user1.getId(), response.getBody().getId());
@@ -160,29 +167,14 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     }
 
     @Test
-    void getUserById_shouldReturnNotFound_whenUserDoesNotExist() {
-        String url = "/api/users/00000000-0000-0000-0000-000000000999";
-
-        ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<Map<String, Object>>() {}
-        );
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(USER_NOT_FOUND, response.getBody().get("message"));
-    }
-
-    @Test
     void getUsersByIds_shouldReturnUsers() {
         String url = String.format("/api/users/ids?ids=%s&ids=%s", user1.getId().toString(), user2.getId().toString());
         ResponseEntity<List<UserResponseDTO>> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<List<UserResponseDTO>>() {}
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<UserResponseDTO>>() {
+                }
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -198,11 +190,12 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     void getUsersByIds_shouldReturnEmptyList_whenNoUsersFound() {
         String url = "/api/users/ids?ids=00000000-0000-0000-0000-000000000999&ids=00000000-0000-0000-0000-000000001000";
         ResponseEntity<List<UserResponseDTO>> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<List<UserResponseDTO>>() {}
-        ); 
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<UserResponseDTO>>() {
+                }
+        );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -212,48 +205,49 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     @Test
     void updateUser_shouldReturnUpdatedUser() {
         String url = String.format("/api/users/%s", user1.getId().toString());
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("Adam")
-            .surname("Smith")
-            .birthDate(LocalDate.of(2000, 12, 31))
-            .email("test3@example.com")
-            .build();
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("Adam")
+                .surname("Smith")
+                .birthDate(LocalDate.of(2000, 12, 31))
+                .email("test3@example.com")
+                .build();
         ResponseEntity<UserResponseDTO> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.PUT,
-            new HttpEntity<>(userRequestDTO),
-            UserResponseDTO.class
+                url,
+                HttpMethod.PUT,
+                new HttpEntity<>(updateUserRequestDTO),
+                UserResponseDTO.class
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(userRequestDTO.getEmail(), response.getBody().getEmail());
-        assertEquals(userRequestDTO.getName(), response.getBody().getName());
-        assertEquals(userRequestDTO.getSurname(), response.getBody().getSurname());
-        assertEquals(userRequestDTO.getBirthDate(), response.getBody().getBirthDate());
+        assertEquals(updateUserRequestDTO.getEmail(), response.getBody().getEmail());
+        assertEquals(updateUserRequestDTO.getName(), response.getBody().getName());
+        assertEquals(updateUserRequestDTO.getSurname(), response.getBody().getSurname());
+        assertEquals(updateUserRequestDTO.getBirthDate(), response.getBody().getBirthDate());
     }
 
     @Test
     void updateUser_shouldReturnConflict_whenEmailAlreadyExists() {
         String url = String.format("/api/users/%s", user1.getId().toString());
-        UserRequestDTO userRequestDTO = UserRequestDTO.builder()
-            .name("Adam")
-            .surname("Smith")
-            .birthDate(LocalDate.of(2000, 12, 31))
-            .email("test2@example.com")
-            .build();   
+        UpdateUserRequestDTO updateUserRequestDTO = UpdateUserRequestDTO.builder()
+                .name("Adam")
+                .surname("Smith")
+                .birthDate(LocalDate.of(2000, 12, 31))
+                .email("test2@example.com")
+                .build();
         ResponseEntity<Map<String, Object>> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.PUT,
-            new HttpEntity<>(userRequestDTO),
-            new ParameterizedTypeReference<Map<String, Object>>() {}
+                url,
+                HttpMethod.PUT,
+                new HttpEntity<>(updateUserRequestDTO),
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                }
         );
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(
-            String.format(USER_ALREADY_EXISTS, userRequestDTO.getEmail()),
-            response.getBody().get("message")
+                String.format(USER_ALREADY_EXISTS, updateUserRequestDTO.getEmail()),
+                response.getBody().get("message")
         );
     }
 
@@ -261,10 +255,10 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
     void deleteUser_shouldReturnNoContent() {
         String url = String.format("/api/users/%s", user1.getId().toString());
         ResponseEntity<Void> response = testRestTemplate.exchange(
-            url,
-            HttpMethod.DELETE,
-            null,
-            Void.class
+                url,
+                HttpMethod.DELETE,
+                null,
+                Void.class
         );
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());

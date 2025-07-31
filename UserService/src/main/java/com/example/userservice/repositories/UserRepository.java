@@ -11,8 +11,8 @@ import java.util.UUID;
 
 import com.example.userservice.entities.User;
 
-public interface UserRepository extends JpaRepository<User, UUID>{
-    
+public interface UserRepository extends JpaRepository<User, UUID> {
+
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.cardInfos WHERE u.id = :id")
     Optional<User> findById(@Param("id") UUID id);
 

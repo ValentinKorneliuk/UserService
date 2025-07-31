@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 *.ps1
 .env
+CI-prev.yaml
 
 ### STS ###
 .apt_generated

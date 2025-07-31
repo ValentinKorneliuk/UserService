@@ -3,6 +3,7 @@ package com.example.userservice.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.userservice.dto.CreateUserRequestDto;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.userservice.dto.UserRequestDTO;
+import com.example.userservice.dto.UpdateUserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.services.UserService;
 
@@ -28,14 +29,13 @@ public class UserController {
 
     private final UserService userService;
 
-
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestDTO));
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody CreateUserRequestDto updateUserRequestDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(updateUserRequestDTO));
     }
 
     @GetMapping("/{id}")
@@ -52,8 +52,8 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
-        return ResponseEntity.ok(userService.updateUser(id, userRequestDTO));
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequestDTO updateUserRequestDTO) {
+        return ResponseEntity.ok(userService.updateUser(id, updateUserRequestDTO));
     }
 
     @DeleteMapping("/{id}")
