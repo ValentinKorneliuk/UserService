@@ -9,6 +9,7 @@ import static dev.kornliuk.jwtauthstarter.exceptions.ForbiddenAccessException.AC
 
 import dev.kornliuk.jwtauthstarter.security.UserDetailsProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.userservice.repositories.CardInfoRepository;
@@ -22,6 +23,7 @@ import com.example.userservice.exceptions.ConflictException;
 import com.example.userservice.exceptions.ResourceNotFoundException;
 import org.springframework.cache.CacheManager;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CardInfoService {
@@ -47,6 +49,8 @@ public class CardInfoService {
         CardInfo savedCardInfo = cardInfoRepository.save(cardInfo);
 
         cacheManager.getCache(USERS_CACHE_NAME).evict(userId);
+
+        log.info("Created new card info with id {} for user {}", cardInfo.getId(), userId);
         return cardInfoMapper.toDTO(savedCardInfo);
     }
 
@@ -77,6 +81,8 @@ public class CardInfoService {
         CardInfo updatedCardInfo = cardInfoRepository.save(cardInfo);
 
         cacheManager.getCache(USERS_CACHE_NAME).evict(updatedCardInfo.getUser().getId());
+
+        log.info("Updated card info with id {}", cardInfo.getId());
         return cardInfoMapper.toDTO(updatedCardInfo);
     }
 
@@ -92,6 +98,8 @@ public class CardInfoService {
         UUID userId = cardInfo.getUser().getId();
         cardInfoRepository.delete(cardInfo);
         cacheManager.getCache(USERS_CACHE_NAME).evict(userId);
+
+        log.info("Deleted card info with id {}", cardInfo.getId());
     }
 
     private void validateCardNumberUpdate(CardInfo cardInfo, CardInfoRequestDTO cardInfoRequestDTO) {

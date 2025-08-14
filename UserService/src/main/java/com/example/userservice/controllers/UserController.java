@@ -3,9 +3,13 @@ package com.example.userservice.controllers;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.CreateUserRequestDTO;
+import dev.kornliuk.jwtauthstarter.exceptions.ForbiddenAccessException;
+import dev.kornliuk.jwtauthstarter.security.UserDetailsProvider;
 import jakarta.validation.Valid;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,24 +27,27 @@ import com.example.userservice.dto.UpdateUserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.services.UserService;
 
+import static dev.kornliuk.jwtauthstarter.exceptions.ForbiddenAccessException.ACCESS_FORBIDDEN;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserDetailsProvider userDetailsProvider;
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody CreateUserRequestDto updateUserRequestDTO) {
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody CreateUserRequestDTO updateUserRequestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(updateUserRequestDTO));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+        if (!isOwner(id)) {
+            throw new ForbiddenAccessException(ACCESS_FORBIDDEN);
+        }
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
@@ -51,15 +58,20 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequestDTO updateUserRequestDTO) {
+        if (!isOwner(id)) {
+            throw new ForbiddenAccessException(ACCESS_FORBIDDEN);
+        }
         return ResponseEntity.ok(userService.updateUser(id, updateUserRequestDTO));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private boolean isOwner(UUID userId) {
+        return userId.equals(userDetailsProvider.getUserId());
     }
 }

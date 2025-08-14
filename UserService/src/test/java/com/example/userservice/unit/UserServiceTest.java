@@ -1,6 +1,6 @@
 package com.example.userservice.unit;
 
-import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.CreateUserRequestDTO;
 import com.example.userservice.dto.UpdateUserRequestDTO;
 import dev.kornliuk.jwtauthstarter.security.UserDetailsProvider;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class UserServiceTest {
 
     @Test
     void createUser_shouldSaveAndReturnUserDTO_whenEmailDoesNotExist() {
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .email("test@test.com")
                 .build();
 
@@ -94,7 +94,7 @@ class UserServiceTest {
 
     @Test
     void createUser_shouldThrowConflictException_whenEmailExists() {
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .email("test@test.com")
                 .build();
 
@@ -107,7 +107,7 @@ class UserServiceTest {
         assertEquals(String.format(USER_ALREADY_EXISTS, createUserRequestDTO.getEmail()), exception.getMessage());
 
         verify(userRepository, never()).save(any());
-        verify(userMapper, never()).toEntity(any(CreateUserRequestDto.class));
+        verify(userMapper, never()).toEntity(any(CreateUserRequestDTO.class));
         verify(userMapper, never()).toDTO(any());
     }
 
@@ -393,7 +393,6 @@ class UserServiceTest {
         UUID userId = UUID.randomUUID();
 
         doNothing().when(userRepository).deleteById(userId);
-        when(userDetailsProvider.getUserId()).thenReturn(userId);
 
         userService.deleteUser(userId);
 

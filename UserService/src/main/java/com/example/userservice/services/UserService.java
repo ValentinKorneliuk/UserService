@@ -1,12 +1,14 @@
 package com.example.userservice.services;
 
-import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.CreateUserRequestDTO;
 import com.example.userservice.dto.UpdateUserRequestDTO;
 import dev.kornliuk.jwtauthstarter.exceptions.ForbiddenAccessException;
 
 import static dev.kornliuk.jwtauthstarter.exceptions.ForbiddenAccessException.ACCESS_FORBIDDEN;
 
 import dev.kornliuk.jwtauthstarter.security.UserDetailsProvider;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.userservice.repositories.UserRepository;
@@ -24,21 +26,18 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.CacheConfig;
 
+@Slf4j
 @Service
 @CacheConfig(cacheNames = "users")
+@RequiredArgsConstructor
 public class UserService {
 
-    private UserRepository userRepository;
-    private UserMapper userMapper;
-    private UserDetailsProvider userDetailsProvider;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final UserDetailsProvider userDetailsProvider;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper, UserDetailsProvider userDetailsProvider) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-        this.userDetailsProvider = userDetailsProvider;
-    }
 
-    public UserResponseDTO createUser(CreateUserRequestDto createUserRequestDTO) {
+    public UserResponseDTO createUser(CreateUserRequestDTO createUserRequestDTO) {
         if (userRepository.existsByEmail(createUserRequestDTO.getEmail())) {
             throw new ConflictException(
                     String.format(ConflictException.USER_ALREADY_EXISTS, createUserRequestDTO.getEmail())
@@ -46,14 +45,13 @@ public class UserService {
         }
         User user = userMapper.toEntity(createUserRequestDTO);
         User savedUser = userRepository.save(user);
+
+        log.info("Created new user with id {}", user.getId());
         return userMapper.toDTO(savedUser);
     }
 
     @Cacheable(key = "#id")
     public UserResponseDTO getUserById(UUID id) {
-        if (!isOwner(id)) {
-            throw new ForbiddenAccessException(ACCESS_FORBIDDEN);
-        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
 
@@ -81,9 +79,6 @@ public class UserService {
     @Transactional
     @CachePut(key = "#id")
     public UserResponseDTO updateUser(UUID id, UpdateUserRequestDTO updateUserRequestDTO) {
-        if (!isOwner(id)) {
-            throw new ForbiddenAccessException(ACCESS_FORBIDDEN);
-        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.USER_NOT_FOUND));
         if (!user.getEmail().equals(updateUserRequestDTO.getEmail()) && userRepository.existsByEmail(updateUserRequestDTO.getEmail())) {
@@ -93,31 +88,19 @@ public class UserService {
         }
         userMapper.updateEntity(updateUserRequestDTO, user);
         User updatedUser = userRepository.save(user);
+
+        log.info("Updated user with id {}", id);
         return userMapper.toDTO(updatedUser);
     }
 
     @Transactional
     @CacheEvict(key = "#id")
     public void deleteUser(UUID id) {
-        if (!canDeleteUser(id)) {
-            throw new ForbiddenAccessException(ACCESS_FORBIDDEN);
-        }
-
         userRepository.deleteById(id);
-    }
-
-    private boolean isOwner(UUID userId) {
-        return userId.equals(userDetailsProvider.getUserId());
+        log.info("Deleted user with id {}", id);
     }
 
     private boolean isOwner(String email) {
         return email.equals(userDetailsProvider.getEmail());
-    }
-
-    private boolean canDeleteUser(UUID userId) {
-        boolean isOwner = userId.equals(userDetailsProvider.getUserId());
-        boolean isAdmin = userDetailsProvider.hasRole("ADMIN");
-
-        return isOwner || isAdmin;
     }
 }
