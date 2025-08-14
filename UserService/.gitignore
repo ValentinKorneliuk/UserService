@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 *.ps1
-.env
+*.env
 CI-prev.yaml
 
 ### STS ###

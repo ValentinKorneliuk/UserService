@@ -1,6 +1,6 @@
 package com.example.userservice.mappers;
 
-import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.CreateUserRequestDTO;
 import com.example.userservice.dto.UpdateUserRequestDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
@@ -12,7 +12,7 @@ import com.example.userservice.entities.User;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = {CardInfoMapper.class})
 public interface UserMapper {
 
-    User toEntity(CreateUserRequestDto dto);
+    User toEntity(CreateUserRequestDTO dto);
 
     User toEntity(UpdateUserRequestDTO dto);
 

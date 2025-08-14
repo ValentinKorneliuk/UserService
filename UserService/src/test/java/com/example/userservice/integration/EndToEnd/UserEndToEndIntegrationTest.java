@@ -1,6 +1,6 @@
 package com.example.userservice.integration.EndToEnd;
 
-import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.CreateUserRequestDTO;
 import com.example.userservice.dto.UpdateUserRequestDTO;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -100,7 +100,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void createUser_shouldReturnCreatedUser() {
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .id(UUID.randomUUID())
                 .name("Adam")
                 .surname("Smith")
@@ -127,7 +127,7 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Test
     void createUser_shouldReturnBadRequest_whenEmailAlreadyExists() {
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .id(UUID.randomUUID())
                 .name("John")
                 .surname("Doe")

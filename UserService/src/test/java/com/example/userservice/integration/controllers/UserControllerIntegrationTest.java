@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
 
-import com.example.userservice.dto.CreateUserRequestDto;
+import com.example.userservice.dto.CreateUserRequestDTO;
 import com.example.userservice.dto.UpdateUserRequestDTO;
 import org.junit.jupiter.api.Test;
 
@@ -170,7 +170,7 @@ class UserControllerIntegrationTest {
     @Test
     void createUser_shouldReturnUser() throws Exception {
         UUID userId = UUID.randomUUID();
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .id(userId)
                 .name("John")
                 .surname("Doe")
@@ -186,7 +186,7 @@ class UserControllerIntegrationTest {
                 .email("john.doe@example.com")
                 .build();
 
-        when(userService.createUser(any(CreateUserRequestDto.class))).thenReturn(userResponseDTO);
+        when(userService.createUser(any(CreateUserRequestDTO.class))).thenReturn(userResponseDTO);
 
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -202,7 +202,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void createUser_shouldReturnBadRequest_whenBlankFieldsAndNullBirthDateAndInvalidEmail() throws Exception {
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .name("")
                 .surname(" ")
                 .birthDate(null)
@@ -229,7 +229,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void createUser_shouldReturnBadRequest_whenTooLongFieldsAndInvalidEmail() throws Exception {
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .name("JohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohnJohn")
                 .surname("DoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoeDoe")
                 .birthDate(LocalDate.of(1990, 1, 1))
@@ -253,7 +253,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void createUser_shouldReturnConflict_whenEmailAlreadyExists() throws Exception {
-        CreateUserRequestDto createUserRequestDTO = CreateUserRequestDto.builder()
+        CreateUserRequestDTO createUserRequestDTO = CreateUserRequestDTO.builder()
                 .id(UUID.randomUUID())
                 .name("John")
                 .surname("Doe")
@@ -261,7 +261,7 @@ class UserControllerIntegrationTest {
                 .email("john.doe@example.com")
                 .build();
 
-        when(userService.createUser(any(CreateUserRequestDto.class)))
+        when(userService.createUser(any(CreateUserRequestDTO.class)))
                 .thenThrow(new ConflictException(String.format(USER_ALREADY_EXISTS, createUserRequestDTO.getEmail())));
 
         mockMvc.perform(post("/api/users")

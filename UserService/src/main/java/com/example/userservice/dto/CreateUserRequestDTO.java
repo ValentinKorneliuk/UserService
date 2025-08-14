@@ -14,7 +14,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class CreateUserRequestDto {
+public class CreateUserRequestDTO {
 
     @NotNull(message = "Id must not be blank")
     private UUID id;

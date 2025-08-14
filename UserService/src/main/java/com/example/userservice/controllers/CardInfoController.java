@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import jakarta.validation.Valid;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,16 +25,18 @@ import com.example.userservice.services.CardInfoService;
 
 @RestController
 @RequestMapping("/api/card-infos")
+@RequiredArgsConstructor
 public class CardInfoController {
 
     private final CardInfoService cardInfoService;
 
-    public CardInfoController(CardInfoService cardInfoService) {
-        this.cardInfoService = cardInfoService;
+
+    @PostMapping
+    public ResponseEntity<CardInfoResponseDTO> createCardInfo(@Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(cardInfoService.createCardInfo(cardInfoRequestDTO));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CardInfoResponseDTO> getCardInfoById(@PathVariable UUID id) {
         return ResponseEntity.ok(cardInfoService.getCardInfoById(id));
     }
@@ -44,20 +47,12 @@ public class CardInfoController {
         return ResponseEntity.ok(cardInfoService.getCardInfosByIds(ids));
     }
 
-    @PostMapping
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<CardInfoResponseDTO> createCardInfo(@Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(cardInfoService.createCardInfo(cardInfoRequestDTO));
-    }
-
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CardInfoResponseDTO> updateCardInfo(@PathVariable UUID id, @Valid @RequestBody CardInfoRequestDTO cardInfoRequestDTO) {
         return ResponseEntity.ok(cardInfoService.updateCardInfo(id, cardInfoRequestDTO));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     public ResponseEntity<Void> deleteCardInfo(@PathVariable UUID id) {
         cardInfoService.deleteCardInfo(id);
         return ResponseEntity.noContent().build();
