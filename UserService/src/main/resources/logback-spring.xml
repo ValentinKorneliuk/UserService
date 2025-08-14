@@ -5,10 +5,12 @@
     <springProperty scope="context" name="logstash_host" source="LOGSTASH_HOST"/>
     <springProperty scope="context" name="logstash_port" source="LOGSTASH_PORT"/>
 
-    <appender name="logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>${logstash_host:-localhost}:${logstash_port:-5000}</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-    </appender>
+    <springProfile name="!test">
+        <appender name="logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${logstash_host:-localhost}:${logstash_port:-5000}</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+    </springProfile>
 
     <root level="INFO">
         <appender-ref ref="logstash"/>
