@@ -57,6 +57,8 @@ class UserEndToEndIntegrationTest extends BaseContainerIntegrationTest {
         registry.add("spring.data.redis.host", redis::getHost);
         registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
         registry.add("spring.data.redis.password", () -> "testpass");
+        registry.add("spring.zipkin.enabled", () -> "false");
+        registry.add("management.tracing.enabled", () -> "false");
     }
 
     User user1;
