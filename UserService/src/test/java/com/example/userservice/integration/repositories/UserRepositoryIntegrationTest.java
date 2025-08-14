@@ -12,42 +12,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 
 import com.example.userservice.integration.BaseContainerIntegrationTest;
 import com.example.userservice.entities.User;
 import com.example.userservice.entities.CardInfo;
 import com.example.userservice.repositories.UserRepository;
 
-@ActiveProfiles("test")
-@Sql(statements = {
-        "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
-        "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
-}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@DataJpaTest
-@Disabled
+
 class UserRepositoryIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
-        registry.add("spring.data.redis.password", () -> "testpass");
-    }
 
     User user1;
     User user2;

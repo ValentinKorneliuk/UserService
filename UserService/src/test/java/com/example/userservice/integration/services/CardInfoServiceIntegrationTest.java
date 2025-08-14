@@ -10,10 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.userservice.services.CardInfoService;
 import com.example.userservice.dto.CardInfoRequestDTO;
@@ -21,7 +19,6 @@ import com.example.userservice.entities.CardInfo;
 import com.example.userservice.entities.User;
 import org.springframework.cache.CacheManager;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.context.jdbc.Sql;
 
 import com.example.userservice.repositories.UserRepository;
 import com.example.userservice.integration.BaseContainerIntegrationTest;
@@ -31,20 +28,9 @@ import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.mappers.UserMapper;
 import com.example.userservice.exceptions.ConflictException;
 
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-
 import static com.example.userservice.exceptions.ConflictException.CARD_INFO_ALREADY_EXISTS;
 
 
-@ActiveProfiles("test")
-@Sql(statements = {
-        "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
-        "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
-}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@SpringBootTest
-@Disabled
 class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired
@@ -59,15 +45,6 @@ class CardInfoServiceIntegrationTest extends BaseContainerIntegrationTest {
     @MockitoSpyBean
     private UserRepository userRepository;
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
-        registry.add("spring.data.redis.password", () -> "testpass");
-    }
 
     User user1;
     CardInfo cardInfo1;
