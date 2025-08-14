@@ -37,6 +37,7 @@ public abstract class BaseContainerIntegrationTest {
         redis.start();
     }
 
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);

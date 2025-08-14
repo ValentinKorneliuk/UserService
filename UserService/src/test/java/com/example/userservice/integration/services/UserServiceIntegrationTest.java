@@ -50,6 +50,9 @@ class UserServiceIntegrationTest extends BaseContainerIntegrationTest {
     @BeforeEach
     void setUp() {
 
+        var cache = cacheManager.getCache("users");
+        cache.clear();
+
         user1 = User.builder()
                 .id(UUID.fromString("00000000-0000-0000-0000-000000000000"))
                 .name("John")
