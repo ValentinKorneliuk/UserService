@@ -1,7 +1,6 @@
 package com.example.userservice.integration.EndToEnd;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 
 import com.example.userservice.repositories.UserRepository;
@@ -31,17 +30,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 
-@ActiveProfiles("test")
-@Sql(statements = {
-        "TRUNCATE TABLE card_info RESTART IDENTITY CASCADE",
-        "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
-}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CardInfoEndToEndIntegrationTest extends BaseContainerIntegrationTest {
 
     @Autowired

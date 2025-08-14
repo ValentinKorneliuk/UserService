@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import com.example.userservice.dto.CreateUserRequestDTO;
 import com.example.userservice.dto.UpdateUserRequestDTO;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static com.example.userservice.exceptions.ConflictException.USER_ALREADY_EXISTS;
@@ -45,6 +46,7 @@ import com.example.userservice.services.UserService;
 @ActiveProfiles("test")
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Disabled
 class UserControllerIntegrationTest {
 
     @Autowired

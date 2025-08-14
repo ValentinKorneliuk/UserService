@@ -122,7 +122,6 @@ class UserServiceTest {
                 .id(userId)
                 .build();
 
-        when(userDetailsProvider.getUserId()).thenReturn(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userMapper.toDTO(userEntity)).thenReturn(userResponseDTO);
 
@@ -138,9 +137,6 @@ class UserServiceTest {
     @Test
     void getUserById_shouldThrowResourceNotFoundException_whenUserDoesntExists() {
         UUID userId = UUID.randomUUID();
-
-        when(userDetailsProvider.getUserId()).thenReturn(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.getUserById(userId);
@@ -319,7 +315,6 @@ class UserServiceTest {
         when(userRepository.save(userEntity)).thenReturn(updatedUserEntity);
         when(userMapper.toDTO(updatedUserEntity)).thenReturn(userResponseDTO);
 
-        when(userDetailsProvider.getUserId()).thenReturn(userId);
         UserResponseDTO result = userService.updateUser(userId, updateUserRequestDTO);
 
         assertNotNull(result);
@@ -345,7 +340,6 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        when(userDetailsProvider.getUserId()).thenReturn(userId);
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             userService.updateUser(userId, updateUserRequestDTO);
         });
@@ -374,7 +368,6 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userRepository.existsByEmail(updateUserRequestDTO.getEmail())).thenReturn(true);
 
-        when(userDetailsProvider.getUserId()).thenReturn(userId);
         ConflictException exception = assertThrows(ConflictException.class, () -> {
             userService.updateUser(userId, updateUserRequestDTO);
         });
